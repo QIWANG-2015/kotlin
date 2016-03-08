@@ -6593,7 +6593,8 @@ public fun <T> Array<out T>.toSortedSet(comparator: Comparator<in T>): SortedSet
 /**
  * Returns a single list of all elements yielded from results of [transform] function being invoked on each element of original array.
  */
-public inline fun <T, R> Array<out T>.flatMap(transform: (T) -> Iterable<R>): List<R> {
+public inline fun <T, R> Array<out T>.
+        flatMap(transform: (T) -> Iterable<R>): List<R> {
     return flatMapTo(ArrayList<R>(), transform)
 }
 
