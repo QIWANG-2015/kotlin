@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.DescriptorFactory
 import org.jetbrains.kotlin.resolve.NonReportingOverrideStrategy
-import org.jetbrains.kotlin.resolve.OverridingStrategy
 import org.jetbrains.kotlin.resolve.OverridingUtil
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
@@ -159,7 +158,7 @@ class DeserializedClassDescriptor(
 
             for (supertypeProto in classProto.supertypes(c.typeTable)) {
                 val supertype = c.typeDeserializer.type(supertypeProto)
-                if (supertype.isError) {
+                if (supertype.constructor.declarationDescriptor is NotFoundClasses.MockClassDescriptor) {
                     unresolved.add(supertype.upperIfFlexible() as? DeserializedType ?: error("Not a deserialized type: $supertype"))
                 }
                 else {
