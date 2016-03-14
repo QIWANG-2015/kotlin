@@ -91,7 +91,7 @@ class NewKotlinActivityAction: AnAction(KotlinIcons.FILE) {
                 else {
                     // AS 1.5
                     val connection = project.messageBus.connect(project)
-                    connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, gradleSyncListener)
+//                    connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, gradleSyncListener)
                 }
             }
             catch(e: Throwable) {
