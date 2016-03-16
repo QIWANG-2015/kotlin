@@ -7,13 +7,14 @@
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-project</artifactId>
         <version>0.1-SNAPSHOT</version>
-        <relativePath>../../../pom.xml</relativePath>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>org.jetbrains.kotlin</groupId>
-    <name>kotlin-archetype</name>
-    <artifactId>kotlin-archetype</artifactId>
-    <packaging>maven-archetype</packaging>
+    <name>kotlin-archetypes</name>
+    <description>Kotlin archetypes parent</description>
+    <artifactId>kotlin-archetypes-parent</artifactId>
+    <packaging>pom</packaging>
 
     <build>
         <resources>

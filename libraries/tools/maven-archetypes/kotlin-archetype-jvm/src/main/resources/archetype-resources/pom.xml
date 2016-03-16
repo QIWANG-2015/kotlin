@@ -9,11 +9,10 @@
     <packaging>jar</packaging>
 
     <name>${groupId} ${artifactId}</name>
-    <url>http://kotlinlang.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>0.1-SNAPSHOT</kotlin.version>
+        <kotlin.version>${kotlinVersion}</kotlin.version>
         <junit.version>4.12</junit.version>
     </properties>
 
@@ -21,6 +20,11 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-test-junit</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
         <dependency>

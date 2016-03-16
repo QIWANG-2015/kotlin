@@ -11,9 +11,8 @@
     </parent>
 
     <groupId>org.jetbrains.kotlin</groupId>
-    <name>kotlin-archetype-hybrid</name>
-    <artifactId>kotlin-archetype-hybrid</artifactId>
-    <description>Kotlin hybrid JVM and JS project archetype</description>
-
+    <name>kotlin-archetype-jvm</name>
+    <description>Kotlin single-module JVM project archetype</description>
+    <artifactId>kotlin-archetype-jvm</artifactId>
     <packaging>maven-archetype</packaging>
 </project>

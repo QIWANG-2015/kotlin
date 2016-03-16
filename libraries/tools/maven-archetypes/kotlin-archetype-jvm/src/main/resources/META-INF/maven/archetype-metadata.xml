@@ -6,13 +6,13 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <fileSets>
-        <fileSet encoding="UTF-8" filtered="true">
+        <fileSet encoding="UTF-8" filtered="true" packaged="true">
             <directory>src/main/kotlin</directory>
             <includes>
                 <include>**/*.kt</include>
             </includes>
         </fileSet>
-        <fileSet encoding="UTF-8" filtered="true">
+        <fileSet encoding="UTF-8" filtered="true" packaged="true">
             <directory>src/test/kotlin</directory>
             <includes>
                 <include>**/*.kt</include>
