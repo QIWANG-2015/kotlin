@@ -653,8 +653,11 @@ public class DefaultErrorMessages {
 
         MAP.put(TYPE_INFERENCE_FAILED_ON_SPECIAL_CONSTRUCT, "Type inference for control flow expression failed. Please specify its type explicitly.");
 
-        MAP.put(WRONG_NUMBER_OF_TYPE_ARGUMENTS_FOR_CLASS, "{0,choice,0#No type arguments|1#Type argument|1<{0,number,integer} type arguments} expected for {1}", null, NAME);
-        MAP.put(WRONG_NUMBER_OF_TYPE_ARGUMENTS_FOR_CALL, "{0,choice,0#No type arguments|1#Type argument|1<{0,number,integer} type arguments} expected for {1}", null, FQ_NAMES_IN_TYPES);
+        //TODO: One type argument
+        //TODO: extract message string
+        // TODO: merge back
+        MAP.put(WRONG_NUMBER_OF_TYPE_ARGUMENTS_FOR_CLASS, "{0,choice,0#No type arguments|1#Type argument|1<{0,number,integer} type arguments} expected for {1}", null, WITHOUT_MODIFIERS);
+        MAP.put(WRONG_NUMBER_OF_TYPE_ARGUMENTS_FOR_CALL, "{0,choice,0#No type arguments|1#Type argument|1<{0,number,integer} type arguments} expected for {1}", null, WITHOUT_MODIFIERS);
         MAP.put(NO_TYPE_ARGUMENTS_ON_RHS, "{0,choice,0#No type arguments|1#Type argument|1<{0,number,integer} type arguments} expected. " +
                                                            "Use ''{1}'' if you don''t want to pass type arguments", null, STRING);
         MAP.put(TYPE_ARGUMENTS_NOT_ALLOWED, "Type arguments are not allowed {0}", STRING);
