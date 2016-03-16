@@ -17,12 +17,13 @@
 package org.jetbrains.kotlin.idea.intentions.loopToCallChain.result
 
 import org.jetbrains.kotlin.idea.intentions.loopToCallChain.*
+import org.jetbrains.kotlin.idea.util.CommentSaver
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtForExpression
 import org.jetbrains.kotlin.psi.KtReturnExpression
+import org.jetbrains.kotlin.psi.psiUtil.PsiChildRange
 
-//TODO: preserve comments
 class FindAndReturnTransformation(
         override val inputVariable: KtCallableDeclaration,
         private val stdlibFunName: String,
@@ -38,6 +39,9 @@ class FindAndReturnTransformation(
     override val expressionsInLambdas: Collection<KtExpression>
         get() = emptyList()
 
+    override fun createCommentSaver(loop: KtForExpression)
+            = CommentSaver(PsiChildRange(loop.unwrapIfLabeled(), endReturn))
+
     override fun convertLoop(loop: KtForExpression, params: TransformLoopParams): KtExpression {
         val valueExpression = if (params.filter == null) {
             params.chainedCallGenerator.generate("$stdlibFunName()")
@@ -49,6 +53,9 @@ class FindAndReturnTransformation(
 
         endReturn.returnedExpression!!.replace(valueExpression)
         loop.deleteWithLabels()
+
+        params.commentSaver.restore(endReturn)
+
         return endReturn
     }
 

@@ -6439,6 +6439,12 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
             doTest(fileName);
         }
 
+        @TestMetadata("firstOrNull_ifAssign_preserveComments.kt")
+        public void testFirstOrNull_ifAssign_preserveComments() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/firstOrNull_ifAssign_preserveComments.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("firstOrNull_ifAssign_variableUsedBefore.kt")
         public void testFirstOrNull_ifAssign_variableUsedBefore() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/firstOrNull_ifAssign_variableUsedBefore.kt");

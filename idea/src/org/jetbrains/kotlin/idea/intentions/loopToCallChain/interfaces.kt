@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.idea.intentions.loopToCallChain
 
+import org.jetbrains.kotlin.idea.util.CommentSaver
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtForExpression
@@ -39,6 +40,8 @@ interface ResultTransformation : Transformation {
     val canIncludeFilter: Boolean
     val canIncludeMap: Boolean
 
+    fun createCommentSaver(loop: KtForExpression): CommentSaver
+
     fun convertLoop(loop: KtForExpression, params: TransformLoopParams): KtExpression
 }
 
@@ -47,7 +50,8 @@ data class FilterOrMap(val expression: KtExpression, val workingVariable: KtCall
 class TransformLoopParams(
         val chainedCallGenerator: ChainedCallGenerator,
         val filter: FilterOrMap?,
-        val map: FilterOrMap?
+        val map: FilterOrMap?,
+        val commentSaver: CommentSaver
 )
 
 data class MatchingState(

@@ -19,10 +19,11 @@ package org.jetbrains.kotlin.idea.intentions.loopToCallChain.result
 import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import org.jetbrains.kotlin.idea.intentions.loopToCallChain.*
+import org.jetbrains.kotlin.idea.util.CommentSaver
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.psiUtil.PsiChildRange
 
-//TODO: preserve comments
 class FindAndAssignTransformation(
         override val inputVariable: KtCallableDeclaration,
         private val stdlibFunName: String,
@@ -38,6 +39,9 @@ class FindAndAssignTransformation(
     override val expressionsInLambdas: Collection<KtExpression>
         get() = emptyList()
 
+    override fun createCommentSaver(loop: KtForExpression)
+            = CommentSaver(PsiChildRange(initialDeclaration, loop.unwrapIfLabeled()))
+
     override fun convertLoop(loop: KtForExpression, params: TransformLoopParams): KtExpression {
         val valueExpression = if (params.filter == null) {
             params.chainedCallGenerator.generate("$stdlibFunName()")
@@ -49,6 +53,8 @@ class FindAndAssignTransformation(
 
         initialDeclaration.initializer!!.replace(valueExpression)
         loop.deleteWithLabels()
+
+        params.commentSaver.restore(initialDeclaration) //TODO: will need some changes if the initial declaration can be not the nearest statement before the loop
 
         if (!initialDeclaration.hasWriteUsages()) { // change variable to 'val' if possible
             initialDeclaration.valOrVarKeyword.replace(KtPsiFactory(initialDeclaration).createValKeyword())

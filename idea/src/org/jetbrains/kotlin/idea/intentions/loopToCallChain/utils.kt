@@ -95,7 +95,7 @@ fun KtExpression.nextStatement(): KtExpression? {
     return statement.siblings(forward = true, withItself = false).firstIsInstanceOrNull<KtExpression>()
 }
 
-private fun KtExpression.unwrapIfLabeled(): KtExpression {
+fun KtExpression.unwrapIfLabeled(): KtExpression {
     var statement = this
     while (true) {
         statement = statement.parent as? KtLabeledExpression ?: return statement

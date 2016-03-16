@@ -77,6 +77,8 @@ fun match(loop: KtForExpression): ResultTransformationMatch? {
 
 //TODO: offer to use of .asSequence() as an option
 fun convertLoop(loop: KtForExpression, matchResult: ResultTransformationMatch): KtExpression {
+    val commentSaver = matchResult.resultTransformation.createCommentSaver(loop)
+
     var sequenceTransformations = matchResult.sequenceTransformations
     val last = sequenceTransformations.lastOrNull()
     var lastFilter: FilterOrMap? = null
@@ -105,7 +107,9 @@ fun convertLoop(loop: KtForExpression, matchResult: ResultTransformationMatch): 
         expression = transformation.generateCode(chainedCallGenerator())
     }
 
-    val params = TransformLoopParams(chainedCallGenerator(), lastFilter, lastMap)
-    return matchResult.resultTransformation.convertLoop(loop, params)
+    val params = TransformLoopParams(chainedCallGenerator(), lastFilter, lastMap, commentSaver)
+    val result = matchResult.resultTransformation.convertLoop(loop, params)
+    assert(params.commentSaver.isFinished)
+    return result
 }
 
