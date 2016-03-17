@@ -26,7 +26,9 @@ import org.jetbrains.kotlin.idea.intentions.branchedTransformations.introduceSub
 import org.jetbrains.kotlin.idea.util.CommentSaver
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.psiUtil.PsiChildRange
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespaceAndComments
+import org.jetbrains.kotlin.psi.psiUtil.siblings
 import java.util.*
 
 class IfToWhenIntention : SelfTargetingRangeIntention<KtIfExpression>(KtIfExpression::class.java, "Replace 'if' with 'when'") {
@@ -63,8 +65,17 @@ class IfToWhenIntention : SelfTargetingRangeIntention<KtIfExpression>(KtIfExpres
         }
     }
 
+    private fun KtExpression?.unwrapBlockIfNeeded(): KtExpression? =
+            if (this is KtBlockExpression && statements.size <= 1) {
+                statements.firstOrNull()
+            }
+            else {
+                this
+            }
+
     override fun applyTo(element: KtIfExpression, editor: Editor?) {
-        val commentSaver = CommentSaver(element)
+        val siblings = element.siblings()
+        val commentSaver = CommentSaver(PsiChildRange(element, siblings.last()), saveLineBreaks = true)
 
         val toDelete = ArrayList<PsiElement>()
         var whenExpression = KtPsiFactory(element).buildExpression {
@@ -85,7 +96,7 @@ class IfToWhenIntention : SelfTargetingRangeIntention<KtIfExpression>(KtIfExpres
                 appendFixedText("->")
 
                 val thenBranch = ifExpression.then
-                appendExpression(thenBranch)
+                appendExpression(thenBranch.unwrapBlockIfNeeded())
                 appendFixedText("\n")
 
                 canPassThrough = canPassThrough || canPassThrough(thenBranch)
@@ -94,7 +105,9 @@ class IfToWhenIntention : SelfTargetingRangeIntention<KtIfExpression>(KtIfExpres
                 val elseBranch = originalElse ?: if (canPassThrough) break else buildNextBranch(rootIfExpression) ?: break
                 if (originalElse == null) {
                     var nextSibling = rootIfExpression.nextSibling
+                    // We delete comments up to the next if (or up to the end of the surrounding block)
                     while (nextSibling != null && nextSibling != elseBranch) {
+                        // RBRACE closes the surrounding block, so it should not be copied / deleted
                         if (nextSibling !is PsiWhiteSpace && nextSibling.node.elementType != KtTokens.RBRACE) {
                             toDelete.add(nextSibling)
                         }
@@ -110,7 +123,7 @@ class IfToWhenIntention : SelfTargetingRangeIntention<KtIfExpression>(KtIfExpres
                 }
                 else {
                     appendFixedText("else->")
-                    appendExpression(elseBranch)
+                    appendExpression(elseBranch.unwrapBlockIfNeeded())
                     appendFixedText("\n")
                     break
                 }

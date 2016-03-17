@@ -5,8 +5,6 @@ fun bar(arg: Int): String {
         0 -> return "Zero"
         -1 -> return "Minus One"
         -2 -> return "Minus Two"
-        else -> {
-            return "Something Complex"
-        }
+        else -> return "Something Complex"
     }
 }
