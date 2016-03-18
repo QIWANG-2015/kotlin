@@ -39,6 +39,7 @@ public abstract class KotlinTestWithEnvironment extends KotlinTestWithEnvironmen
 
     @Override
     protected void tearDown() throws Exception {
+        removeEnvironment();
         environment = null;
         super.tearDown();
 
@@ -61,6 +62,7 @@ public abstract class KotlinTestWithEnvironment extends KotlinTestWithEnvironmen
     }
 
     protected abstract KotlinCoreEnvironment createEnvironment() throws Exception;
+    protected void removeEnvironment() throws Exception {}
 
     @NotNull
     public KotlinCoreEnvironment getEnvironment() {

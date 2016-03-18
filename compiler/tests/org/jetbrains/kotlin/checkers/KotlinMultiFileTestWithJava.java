@@ -70,6 +70,36 @@ public abstract class KotlinMultiFileTestWithJava<M, F> extends KotlinTestWithEn
         return KotlinCoreEnvironment.createForTests(getTestRootDisposable(), configuration, getEnvironmentConfigFiles());
     }
 
+    @Override
+    protected void removeEnvironment() throws Exception {
+        deleteDirectory(javaFilesDir);
+        deleteDirectory(kotlinSourceRoot);
+    }
+
+    private static boolean deleteDirectory(File path) {
+        if (path == null) return true;
+
+        boolean result = true;
+        if (path.exists() && path.isDirectory()) {
+            File[] files = path.listFiles();
+            if (files == null) {
+                result = false;
+            }
+            else {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        result = deleteDirectory(file) && result;
+                    }
+                    else {
+                        result = file.delete() && result;
+                    }
+                }
+            }
+        }
+
+        return path.delete() && result;
+    }
+
     @NotNull
     protected ConfigurationKind getConfigurationKind() {
         return ConfigurationKind.MOCK_RUNTIME;
