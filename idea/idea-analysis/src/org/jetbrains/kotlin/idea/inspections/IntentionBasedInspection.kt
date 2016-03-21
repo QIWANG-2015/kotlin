@@ -40,8 +40,11 @@ abstract class IntentionBasedInspection<TElement : KtElement>(
         protected val elementType: Class<TElement>
 ) : AbstractKotlinInspection() {
 
-    constructor(intention: SelfTargetingRangeIntention<TElement>, additionalChecker: (TElement) -> Boolean = { true })
-    : this(listOf(IntentionData(intention, additionalChecker)), null, intention.elementType)
+    constructor(
+            intention: SelfTargetingRangeIntention<TElement>,
+            additionalChecker: (TElement) -> Boolean = { true },
+            problemText: String? = null
+    ) : this(listOf(IntentionData(intention, additionalChecker)), problemText, intention.elementType)
 
     data class IntentionData<TElement : KtElement>(
             val intention: SelfTargetingRangeIntention<TElement>,

@@ -18,10 +18,15 @@ package org.jetbrains.kotlin.idea.intentions.loopToCallChain
 
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.TextRange
+import org.jetbrains.kotlin.idea.inspections.IntentionBasedInspection
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingRangeIntention
 import org.jetbrains.kotlin.idea.quickfix.moveCaret
 import org.jetbrains.kotlin.psi.KtForExpression
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
+
+class LoopToCallChainInspection : IntentionBasedInspection<KtForExpression>(
+        LoopToCallChainIntention(),
+        problemText = "Loop can be replaced with stdlib operations")
 
 class LoopToCallChainIntention : SelfTargetingRangeIntention<KtForExpression>(
         KtForExpression::class.java,
