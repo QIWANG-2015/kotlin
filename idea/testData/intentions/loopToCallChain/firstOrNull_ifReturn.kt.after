@@ -1,4 +1,4 @@
 // WITH_RUNTIME
 fun foo(list: List<String>): String? {
-    <caret>return list.firstOrNull { s -> s.length > 0 }
+    <caret>return list.firstOrNull { it.length > 0 }
 }

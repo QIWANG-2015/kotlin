@@ -1,7 +1,7 @@
 // WITH_RUNTIME
 fun foo(list: List<String>): Int? {
     <caret>return list
-            .filterNot { s -> s.isEmpty() }
-            .map { s -> s.length }
+            .filterNot { it.isEmpty() }
+            .map { it.length }
             .firstOrNull()
 }

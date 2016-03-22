@@ -6499,6 +6499,12 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
             doTest(fileName);
         }
 
+        @TestMetadata("itAlreadyUsed.kt")
+        public void testItAlreadyUsed() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/itAlreadyUsed.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("map.kt")
         public void testMap() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/map.kt");

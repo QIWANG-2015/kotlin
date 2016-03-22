@@ -19,22 +19,46 @@ package org.jetbrains.kotlin.idea.intentions.loopToCallChain
 import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import org.jetbrains.kotlin.KtNodeTypes
+import org.jetbrains.kotlin.idea.analysis.analyzeInContext
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.intentions.branchedTransformations.isNullExpression
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.references.readWriteAccess
+import org.jetbrains.kotlin.idea.util.getResolutionScope
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.parents
-import org.jetbrains.kotlin.psi.psiUtil.siblings
+import org.jetbrains.kotlin.psi.psiUtil.*
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
-//TODO: use 'it'?
 fun generateLambda(workingVariable: KtCallableDeclaration, expression: KtExpression): KtLambdaExpression {
-    return KtPsiFactory(expression).createExpressionByPattern("{ $0 -> $1 }", workingVariable.nameAsSafeName, expression) as KtLambdaExpression
+    val psiFactory = KtPsiFactory(expression)
+
+    val lambdaExpression = psiFactory.createExpressionByPattern("{ $0 -> $1 }", workingVariable.nameAsSafeName, expression) as KtLambdaExpression
+
+    val isItUsedInside = expression.anyDescendantOfType<KtNameReferenceExpression> {
+        it.getQualifiedExpressionForSelector() == null && it.getReferencedName() == "it"
+    }
+
+    if (isItUsedInside) return lambdaExpression
+
+    val resolutionScope = workingVariable.getResolutionScope(workingVariable.analyze(BodyResolveMode.FULL), workingVariable.getResolutionFacade())
+    val bindingContext = lambdaExpression.analyzeInContext(resolutionScope, contextExpression = workingVariable)
+    val lambdaParam = lambdaExpression.valueParameters.single()
+    val lambdaParamDescriptor = bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, lambdaParam]
+    val usages = lambdaExpression.collectDescendantsOfType<KtNameReferenceExpression> {
+        it.mainReference.resolveToDescriptors(bindingContext).singleOrNull() == lambdaParamDescriptor
+    }
+
+    val itExpr = psiFactory.createSimpleName("it")
+    for (usage in usages) {
+        usage.replace(itExpr)
+    }
+
+    return psiFactory.createExpressionByPattern("{ $0 }", lambdaExpression.bodyExpression!!) as KtLambdaExpression
 }
 
 fun KtExpression?.isTrueConstant()

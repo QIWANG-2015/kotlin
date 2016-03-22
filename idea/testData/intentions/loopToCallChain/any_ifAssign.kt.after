@@ -1,4 +1,4 @@
 // WITH_RUNTIME
 fun foo(list: List<String>) {
-    <caret>val found = list.any { s -> s.length > 0 }
+    <caret>val found = list.any { it.length > 0 }
 }
