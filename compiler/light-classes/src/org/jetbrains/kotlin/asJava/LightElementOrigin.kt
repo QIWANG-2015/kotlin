@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2015 JetBrains s.r.o.
+ * Copyright 2010-2016 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,12 +39,23 @@ interface LightElementOrigin {
 fun JvmDeclarationOrigin.toLightMemberOrigin(): LightElementOrigin {
     val originalElement = element
     return when (originalElement) {
-        is KtDeclaration -> LightMemberOrigin(originalElement, originKind)
+        is KtDeclaration -> LightMemberOriginForDeclaration(originalElement, originKind)
         else -> LightElementOrigin.None
     }
 }
 
-data class LightMemberOrigin(override val originalElement: KtDeclaration, override val originKind: JvmDeclarationOriginKind) : LightElementOrigin
+interface LightMemberOrigin : LightElementOrigin {
+    override val originalElement: KtDeclaration?
+    override val originKind: JvmDeclarationOriginKind
+
+    fun copy(): LightMemberOrigin
+}
+
+data class LightMemberOriginForDeclaration(override val originalElement: KtDeclaration, override val originKind: JvmDeclarationOriginKind) : LightMemberOrigin {
+    override fun copy(): LightMemberOrigin {
+        return LightMemberOriginForDeclaration(originalElement.copy() as KtDeclaration, originKind)
+    }
+}
 
 data class LightClassOrigin(override val originalElement: PsiElement?) : LightElementOrigin {
     override val originKind: JvmDeclarationOriginKind? get() = null
@@ -53,5 +64,3 @@ data class LightClassOrigin(override val originalElement: PsiElement?) : LightEl
 fun PsiElement?.toLightClassOrigin(): LightElementOrigin {
     return if (this != null) LightClassOrigin(this) else LightElementOrigin.None
 }
-
-fun LightMemberOrigin.copy() = LightMemberOrigin(originalElement.copy() as KtDeclaration, originKind)
