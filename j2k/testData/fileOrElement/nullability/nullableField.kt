@@ -13,7 +13,7 @@ class Test {
 
     fun test() {
         foo1(myProp!!)
-        foo2(myProp!!)
+        foo2(myProp)
         foo3(myProp)
 
         myProp!![myIntProp!!]
@@ -32,7 +32,7 @@ class Test {
 
     }
 
-    fun foo2(s: String) {
+    fun foo2(s: String?) {
 
     }
 

@@ -348,21 +348,68 @@ class TypeConverter(val converter: Converter) {
                 is PsiNewExpression -> Nullability.NotNull
 
                 is PsiConditionalExpression -> {
-                    val nullability1 = thenExpression?.nullability()
+                    val nullCheckedOperand = notNullExpressionInferedFromCondition(this)
+
+                    fun isNotNullFromCondition(expr: PsiExpression?) = nullCheckedOperand != null && nullCheckedOperand == expr
+
+                    val nullability1 = if (isNotNullFromCondition(thenExpression)) Nullability.NotNull else thenExpression?.nullability()
                     if (nullability1 == Nullability.Nullable) return Nullability.Nullable
-                    val nullability2 = elseExpression?.nullability()
+
+                    val nullability2 = if (isNotNullFromCondition(elseExpression)) Nullability.NotNull else elseExpression?.nullability()
                     if (nullability2 == Nullability.Nullable) return Nullability.Nullable
-                    if (nullability1 == Nullability.NotNull && nullability2 == Nullability.NotNull) return Nullability.NotNull
+
+                    if (nullability1 == Nullability.NotNull && nullability2 == Nullability.NotNull) {
+                        return Nullability.NotNull
+                    }
+
                     Nullability.Default
                 }
 
                 is PsiParenthesizedExpression -> expression?.nullability() ?: Nullability.Default
+
+                is PsiReferenceExpression -> {
+                    val psiVariable = this.resolve() as? PsiVariable
+                    psiVariable?.let { variableNullability(psiVariable) } ?: Nullability.Default
+                }
+
+                is PsiMethodCallExpression -> {
+                    val psiMethod = this.methodExpression.resolve() as? PsiMethod
+                    psiMethod?.let { methodNullability(psiMethod) } ?: Nullability.Default
+                }
+
+                is PsiTypeCastExpression -> this.operand?.nullability() ?: Nullability.Default
 
 
             //TODO: some other cases
 
                 else -> Nullability.Default
             }
+        }
+
+        private fun notNullExpressionInferedFromCondition(ifExpression: PsiConditionalExpression): PsiExpression? {
+            val condition = ifExpression.condition
+
+            if (condition is PsiBinaryExpression) {
+                val branchToCheck =
+                        when (condition.operationTokenType) {
+                            JavaTokenType.EQEQ -> ifExpression.elseExpression
+                            JavaTokenType.NE -> ifExpression.thenExpression
+                            else -> null
+                        } ?: return null
+
+                val operandToCheck =
+                        when {
+                            condition.lOperand.isNullLiteral() -> condition.rOperand
+                            condition.rOperand?.isNullLiteral() ?: false -> condition.lOperand
+                            else -> null
+                        } ?: return null
+
+                if (operandToCheck.text == branchToCheck.text) {
+                    return branchToCheck
+                }
+            }
+
+            return null
         }
     }
 

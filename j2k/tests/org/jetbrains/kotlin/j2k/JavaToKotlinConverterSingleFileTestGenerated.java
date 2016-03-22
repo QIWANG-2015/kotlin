@@ -3499,6 +3499,12 @@ public class JavaToKotlinConverterSingleFileTestGenerated extends AbstractJavaTo
             doTest(fileName);
         }
 
+        @TestMetadata("nullableInitializer.java")
+        public void testNullableInitializer() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("j2k/testData/fileOrElement/nullability/nullableInitializer.java");
+            doTest(fileName);
+        }
+
         @TestMetadata("NullableIntNoCrash.java")
         public void testNullableIntNoCrash() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("j2k/testData/fileOrElement/nullability/NullableIntNoCrash.java");
