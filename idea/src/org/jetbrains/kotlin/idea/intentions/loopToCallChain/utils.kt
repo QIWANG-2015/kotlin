@@ -48,7 +48,9 @@ fun KtExpression?.isVariableReference(variable: KtCallableDeclaration): Boolean 
 }
 
 fun KtCallableDeclaration.hasUsages(inElements: Collection<KtElement>): Boolean {
-    return ReferencesSearch.search(this, LocalSearchScope(inElements.toTypedArray())).any()
+    // TODO: it's a temporary workaround about strange dead-lock when running inspections
+    return inElements.any { ReferencesSearch.search(this, LocalSearchScope(it)).any() }
+//    return ReferencesSearch.search(this, LocalSearchScope(inElements.toTypedArray())).any()
 }
 
 fun KtProperty.hasWriteUsages(): Boolean {
