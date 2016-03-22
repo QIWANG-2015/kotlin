@@ -25,19 +25,23 @@ import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.testFramework.ParsingTestCase;
 import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.KtNodeTypes;
 import org.jetbrains.kotlin.psi.*;
 import org.jetbrains.kotlin.script.KotlinScriptDefinitionProvider;
 import org.jetbrains.kotlin.test.KotlinTestUtils;
+import org.jetbrains.kotlin.test.testFramework.KtParsingTestCase;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-public abstract class AbstractParsingTest extends ParsingTestCase {
+public abstract class AbstractParsingTest extends KtParsingTestCase {
+    static {
+        System.setProperty("idea.platform.prefix", "Idea");
+    }
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();
