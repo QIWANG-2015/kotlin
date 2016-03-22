@@ -145,7 +145,6 @@ class LazyJavaClassDescriptor(
                 val kotlinType = c.typeResolver.transformJavaType(javaType, TypeUsage.SUPERTYPE.toAttributes())
                 if (kotlinType.constructor.declarationDescriptor is NotFoundClasses.MockClassDescriptor) {
                     incomplete.add(javaType)
-                    continue
                 }
 
                 if (kotlinType.constructor == purelyImplementedSupertype?.constructor) {

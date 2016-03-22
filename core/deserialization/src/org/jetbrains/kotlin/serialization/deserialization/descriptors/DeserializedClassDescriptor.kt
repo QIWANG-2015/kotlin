@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.DescriptorFactory
 import org.jetbrains.kotlin.resolve.NonReportingOverrideStrategy
 import org.jetbrains.kotlin.resolve.OverridingUtil
+import org.jetbrains.kotlin.resolve.descriptorUtil.classId
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.StaticScopeForKotlinEnum
@@ -35,7 +36,6 @@ import org.jetbrains.kotlin.serialization.deserialization.*
 import org.jetbrains.kotlin.types.AbstractClassTypeConstructor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
-import org.jetbrains.kotlin.types.upperIfFlexible
 import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.singletonOrEmptyList
 import org.jetbrains.kotlin.utils.toReadOnlyList
@@ -153,24 +153,19 @@ class DeserializedClassDescriptor(
         }
 
         override fun computeSupertypes(): Collection<KotlinType> {
-            val result = ArrayList<KotlinType>(classProto.supertypeCount)
-            val unresolved = ArrayList<DeserializedType>(0)
+            val result = classProto.supertypes(c.typeTable).map { supertypeProto ->
+                c.typeDeserializer.type(supertypeProto)
+            } + c.components.additionalSupertypes.forClass(this@DeserializedClassDescriptor)
 
-            for (supertypeProto in classProto.supertypes(c.typeTable)) {
-                val supertype = c.typeDeserializer.type(supertypeProto)
-                if (supertype.constructor.declarationDescriptor is NotFoundClasses.MockClassDescriptor) {
-                    unresolved.add(supertype.upperIfFlexible() as? DeserializedType ?: error("Not a deserialized type: $supertype"))
-                }
-                else {
-                    result.add(supertype)
-                }
+            val unresolved = result.mapNotNull { supertype ->
+                supertype.constructor.declarationDescriptor as? NotFoundClasses.MockClassDescriptor
             }
-
-            result.addAll(c.components.additionalSupertypes.forClass(this@DeserializedClassDescriptor))
 
             if (unresolved.isNotEmpty()) {
                 c.components.errorReporter.reportIncompleteHierarchy(
-                        this@DeserializedClassDescriptor, unresolved.map(DeserializedType::getPresentableText))
+                        this@DeserializedClassDescriptor,
+                        unresolved.map { it.classId.asSingleFqName().asString() }
+                )
             }
 
             return result.toReadOnlyList()

@@ -30,14 +30,12 @@ class DeserializedType(
         private val typeProto: ProtoBuf.Type,
         private val additionalAnnotations: Annotations = Annotations.EMPTY
 ) : AbstractLazyType(c.storageManager), LazyType {
-    private val typeDeserializer: TypeDeserializer get() = c.typeDeserializer
-
-    override fun computeTypeConstructor() = typeDeserializer.typeConstructor(typeProto)
+    override fun computeTypeConstructor() = c.typeDeserializer.typeConstructor(typeProto)
 
     override fun computeArguments() =
             typeProto.collectAllArguments().mapIndexed {
                 index, proto ->
-                typeDeserializer.typeArgument(constructor.parameters.getOrNull(index), proto)
+                c.typeDeserializer.typeArgument(constructor.parameters.getOrNull(index), proto)
             }.toReadOnlyList()
 
     private fun ProtoBuf.Type.collectAllArguments(): List<ProtoBuf.Type.Argument> =
@@ -63,6 +61,4 @@ class DeserializedType(
     private val typeCapabilities = c.storageManager.createLazyValue {
         c.components.typeCapabilitiesLoader.loadCapabilities(typeProto)
     }
-
-    fun getPresentableText(): String = typeDeserializer.presentableTextForErrorType(typeProto)
 }
