@@ -84,7 +84,7 @@ internal val THIS_NAME = "this"
 internal val LOG = Logger.getInstance("#org.jetbrains.kotlin.idea.debugger.evaluate.KotlinEvaluator")
 internal val GENERATED_FUNCTION_NAME = "generated_for_debugger_kotlin_rulezzzz"
 
-private val DEBUG_MODE = false
+private val DEBUG_MODE = true
 
 object KotlinEvaluationBuilder: EvaluatorBuilder {
     override fun build(codeFragment: PsiElement, position: SourcePosition?): ExpressionEvaluator {
