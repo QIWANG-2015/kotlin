@@ -453,8 +453,18 @@ class Converter private constructor(
 
         if (canChangeType) return false
 
-        var initializerType = createDefaultCodeConverter().convertedExpressionType(initializer, variable.type)
-        if (initializerType is ErrorType) return false // do not add explicit type when initializer is not resolved, let user add it if really needed
+        val initializerType = createDefaultCodeConverter().convertedExpressionType(initializer, variable.type)
+
+        // do not add explicit type when initializer is not resolved, let user add it if really needed
+        if (initializerType is ErrorType) return false
+
+        // add explicit type when initializer has anonymous type, but the variable has another write accesses
+        if (initializerType is ClassType && initializerType.isAnonymous()
+                && variable.hasWriteAccesses(referenceSearcher, variable.getContainingClass())
+        ) {
+            return true
+        }
+
         return type != initializerType
     }
 

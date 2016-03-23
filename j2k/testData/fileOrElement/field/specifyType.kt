@@ -26,4 +26,24 @@ internal class A {
         field9 = null
         field10 = null
     }
+
+    internal interface I
+
+    private val anonymous = object : I {
+
+    }
+    var anonymous2: I = object : I {
+
+    }
+
+    private var iimpl: I = anonymous
+    var iimpl2: I = anonymous
+
+    fun testAnonymousObject(i: Any) {
+        if (true) {
+            iimpl = i as I
+        } else {
+            iimpl2 = i as I
+        }
+    }
 }

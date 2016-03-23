@@ -25,4 +25,23 @@ class A {
         field9 = null;
         field10 = null;
     }
+
+    interface I
+
+    private I anonymous = new I() {
+    };
+    public I anonymous2 = new I() {
+    };
+
+    private I iimpl = anonymous;
+    public I iimpl2 = anonymous;
+
+    void testAnonymousObject(Object i) {
+        if (true) {
+            iimpl = (I) i;
+        }
+        else {
+            iimpl2 = (I) i;
+        }
+    }
 }

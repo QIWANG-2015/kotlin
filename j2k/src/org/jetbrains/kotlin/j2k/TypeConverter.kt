@@ -63,13 +63,20 @@ class TypeConverter(val converter: Converter) {
                       converter.settings).assignNoPrototype()
         }
         else {
-            convertType(variable.type, variableNullability(variable), variableMutability(variable))
+            convertType(variableType(variable), variableNullability(variable), variableMutability(variable))
         }
         return result.assignPrototype(variable.typeElement)
     }
 
     fun convertMethodReturnType(method: PsiMethod): Type
             = convertType(method.returnType, methodNullability(method), methodMutability(method)).assignPrototype(method.returnTypeElement)
+
+    private fun variableType(variable: PsiVariable): PsiType {
+        if (variable.hasModifierProperty(PsiModifier.PRIVATE) && variable.hasInitializer()) {
+            return variable.initializer!!.type ?: variable.type
+        }
+        return variable.type
+    }
 
     fun variableNullability(variable: PsiVariable): Nullability
             = nullabilityFlavor.forVariableType(variable, true)

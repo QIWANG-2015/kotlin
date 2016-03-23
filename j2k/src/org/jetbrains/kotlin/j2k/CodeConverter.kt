@@ -143,8 +143,14 @@ class CodeConverter(
 
     fun convertedExpressionType(expression: PsiExpression, expectedType: PsiType): Type {
         var convertedExpression = convertExpression(expression)
+
+        val resolveResult = expression.reference?.resolve()
+
         val actualType = expression.type ?: return ErrorType()
-        var resultType = typeConverter.convertType(actualType, if (convertedExpression.isNullable) Nullability.Nullable else Nullability.NotNull)
+        var resultType = when(resolveResult) {
+            is PsiVariable -> typeConverter.convertVariableType(resolveResult)
+            else -> typeConverter.convertType(actualType, if (convertedExpression.isNullable) Nullability.Nullable else Nullability.NotNull)
+        }
 
         if (actualType is PsiPrimitiveType && resultType.isNullable ||
             expectedType is PsiPrimitiveType && actualType is PsiClassType) {
