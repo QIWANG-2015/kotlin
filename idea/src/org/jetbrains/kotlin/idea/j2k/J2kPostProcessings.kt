@@ -54,6 +54,7 @@ object J2KPostProcessingRegistrar {
         _processings.add(ConvertToStringTemplateProcessing())
         _processings.add(UsePropertyAccessSyntaxProcessing())
         _processings.add(RemoveRedundantSamAdaptersProcessing())
+        _processings.add(SimplifyNullCastProcessing())
 
         registerIntentionBasedProcessing(ConvertToExpressionBodyIntention()) { it is KtPropertyAccessor }
         registerIntentionBasedProcessing(IfThenToSafeAccessIntention())
@@ -219,4 +220,24 @@ object J2KPostProcessingRegistrar {
             }
         }
     }
+
+    private class SimplifyNullCastProcessing : J2kPostProcessing {
+        override fun createAction(element: KtElement, diagnostics: Diagnostics): (() -> Unit)? {
+            if (element !is KtUnaryExpression || element.operationToken != KtTokens.EXCLEXCL) return null
+
+            val castExpression = (element.baseExpression as? KtParenthesizedExpression)?.expression as? KtBinaryExpressionWithTypeRHS
+            if (castExpression == null) return null
+
+            val type = castExpression.right?.typeElement ?: return null
+            if (type !is KtNullableType) return null
+
+            val innerType = (type.innerType as? KtUserType)?.referenceExpression ?: return null
+
+            return {
+                element.replace(KtPsiFactory(element).createExpressionByPattern("$0 as $1", castExpression.left, innerType))
+            }
+        }
+
+    }
+
 }
