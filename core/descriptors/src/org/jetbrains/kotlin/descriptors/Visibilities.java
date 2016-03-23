@@ -21,7 +21,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.resolve.DescriptorUtils;
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue;
+import org.jetbrains.kotlin.resolve.scopes.receivers.SuperCallReceiverValue;
 import org.jetbrains.kotlin.resolve.scopes.receivers.ThisClassReceiver;
+import org.jetbrains.kotlin.types.KotlinType;
 import org.jetbrains.kotlin.util.ModuleVisibilityHelper;
 import org.jetbrains.kotlin.utils.CollectionsKt;
 
@@ -120,19 +122,58 @@ public class Visibilities {
         }
 
         @Override
-        public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from) {
-            ClassDescriptor classDescriptor = DescriptorUtils.getParentOfType(what, ClassDescriptor.class);
-            if (DescriptorUtils.isCompanionObject(classDescriptor)) {
-                classDescriptor = DescriptorUtils.getParentOfType(classDescriptor, ClassDescriptor.class);
-            }
-            if (classDescriptor == null) return false;
-
+        public boolean isVisible(
+                @Nullable ReceiverValue receiver,
+                @NotNull DeclarationDescriptorWithVisibility what,
+                @NotNull DeclarationDescriptor from
+        ) {
+            ClassDescriptor givenDescriptorContainingClass = DescriptorUtils.getParentOfType(what, ClassDescriptor.class);
             ClassDescriptor fromClass = DescriptorUtils.getParentOfType(from, ClassDescriptor.class, false);
             if (fromClass == null) return false;
-            if (DescriptorUtils.isSubclass(fromClass, classDescriptor)) {
+
+            if (givenDescriptorContainingClass != null && DescriptorUtils.isCompanionObject(givenDescriptorContainingClass)) {
+                // Access to protected members inside companion is allowed to all subclasses
+                // Receiver type does not matter because objects are final
+                // NB: protected fake overrides in companion from super class should also be allowed
+                ClassDescriptor companionOwner = DescriptorUtils.getParentOfType(givenDescriptorContainingClass, ClassDescriptor.class);
+                if (companionOwner != null && DescriptorUtils.isSubclass(fromClass, companionOwner)) return true;
+
+                return isVisible(receiver, what, fromClass.getContainingDeclaration());
+            }
+
+            // The rest part of method checks visibility similarly to Java does for protected (see JLS §6.6.2)
+
+            // Protected fake overrides can have only one protected overridden (as protected is not allowed for interface members)
+            DeclarationDescriptorWithVisibility whatDeclaration = DescriptorUtils.unwrapFakeOverrideToAnyDeclaration(what);
+
+            ClassDescriptor classDescriptor = DescriptorUtils.getParentOfType(whatDeclaration, ClassDescriptor.class);
+            if (classDescriptor == null) return false;
+
+            if (DescriptorUtils.isSubclass(fromClass, classDescriptor)
+                    && doesReceiverFitForProtectedVisibility(receiver, whatDeclaration, fromClass)) {
                 return true;
             }
-            return isVisible(receiver, what, fromClass.getContainingDeclaration());
+
+            return isVisible(receiver, whatDeclaration, fromClass.getContainingDeclaration());
+        }
+
+        private boolean doesReceiverFitForProtectedVisibility(
+                @Nullable ReceiverValue receiver,
+                @NotNull DeclarationDescriptorWithVisibility whatDeclaration,
+                @NotNull ClassDescriptor fromClass
+        ) {
+            // Do not check receiver for non-callable declarations
+            if (!(whatDeclaration instanceof CallableMemberDescriptor)) return true;
+
+            // See Visibility.isVisible contract
+            if (receiver == null) return true;
+            if (receiver == RECEIVER_DOES_NOT_EXIST) return false;
+
+            KotlinType actualReceiverType = receiver instanceof SuperCallReceiverValue
+                                            ? ((SuperCallReceiverValue) receiver).getThisType()
+                                            : receiver.getType();
+
+            return DescriptorUtils.isSubtypeOfClass(actualReceiverType, fromClass);
         }
     };
 
