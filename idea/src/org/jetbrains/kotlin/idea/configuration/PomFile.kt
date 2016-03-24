@@ -109,7 +109,9 @@ class PomFile(val xmlFile: XmlFile) {
         val plugin = domModel.build.plugins.plugins.firstOrNull { it.matches(groupArtifact) } ?: domModel.build.plugins.addPlugin()
         plugin.groupId.stringValue = artifact.groupId
         plugin.artifactId.stringValue = artifact.artifactId
-        plugin.version.stringValue = artifact.version
+        if (artifact.version != null) {
+            plugin.version.stringValue = artifact.version
+        }
         plugin.ensureTagExists()
 
         return plugin
@@ -295,6 +297,40 @@ class PomFile(val xmlFile: XmlFile) {
     }
 
     private fun GenericDomValue<String>.isEmpty() = !exists() || stringValue.isNullOrEmpty()
+
+    @Suppress("Unused")
+    object DefaultPhases {
+        val Validate = "validate"
+        val Initialize = "initialize"
+        val GenerateSources = "generate-sources"
+        val ProcessSources = "process-sources"
+        val GenerateResources = "generate-resources"
+        val ProcessResources = "process-resources"
+        val Compile = "compile"
+        val ProcessClasses = "process-classes"
+        val GenerateTestSources = "generate-test-sources"
+        val ProcessTestSources = "process-test-sources"
+        val GenerateTestResources = "generate-test-resources"
+        val ProcessTestResources = "process-test-resources"
+        val TestCompile = "test-compile"
+        val ProcessTestClasses = "process-test-classes"
+        val Test = "test"
+        val PreparePackage = "prepare-package"
+        val Package = "package"
+        val PreIntegrationTest = "pre-integration-test"
+        val IntegrationTest = "integration-test"
+        val PostIntegrationTest = "post-integration-test"
+        val Verify = "verify"
+        val Install = "install"
+        val Deploy = "deploy"
+    }
+
+    object KotlinGoals {
+        val Compile = "compile"
+        val TestCompile = "test-compile"
+        val Js = "js"
+        val TestJs = "test-js"
+    }
 
     companion object {
         // from maven code convention: https://maven.apache.org/developers/conventions/code.html

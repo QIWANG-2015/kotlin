@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatform;
 
 public class KotlinJavaMavenConfigurator extends KotlinMavenConfigurator {
     private static final String NAME = "maven";
-    private static final String STD_LIB_ID = "kotlin-stdlib";
+    public static final String STD_LIB_ID = "kotlin-stdlib";
     private static final String TEST_LIB_ID = "kotlin-test-junit";
     private static final String PRESENTABLE_TEXT = "Maven";
 

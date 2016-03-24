@@ -55,8 +55,8 @@ import java.util.List;
 public abstract class KotlinMavenConfigurator implements KotlinProjectConfigurator {
     public static final String NAME = "maven";
 
-    private static final String GROUP_ID = "org.jetbrains.kotlin";
-    private static final String MAVEN_PLUGIN_ID = "kotlin-maven-plugin";
+    public static final String GROUP_ID = "org.jetbrains.kotlin";
+    public static final String MAVEN_PLUGIN_ID = "kotlin-maven-plugin";
     private static final String KOTLIN_VERSION_PROPERTY = "kotlin.version";
     private static final String SNAPSHOT_REPOSITORY_ID = "sonatype.oss.snapshots";
     private static final String SONATYPE_OSS_REPOSITORY_NAME = "Sonatype OSS Snapshot Repository";
