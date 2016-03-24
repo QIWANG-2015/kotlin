@@ -18,11 +18,12 @@ package org.jetbrains.kotlin.codegen;
 
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.Factory;
-import com.intellij.openapi.util.Pair;
 import com.intellij.util.containers.ContainerUtil;
+import kotlin.Triple;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.codegen.state.GenerationState;
 import org.jetbrains.kotlin.psi.KtFile;
+import org.jetbrains.kotlin.resolve.inline.InlineUtil;
 import org.jetbrains.org.objectweb.asm.Type;
 
 import java.util.Map;
@@ -30,20 +31,33 @@ import java.util.Map;
 public class SamWrapperClasses {
     private final GenerationState state;
 
-    private final Map<Pair<SamType, KtFile>, Type> samInterfaceToWrapperClass = Maps.newHashMap();
+    private final Map<Triple<SamType, KtFile, Boolean>, Type> samInterfaceToWrapperClass = Maps.newHashMap();
 
     public SamWrapperClasses(@NotNull GenerationState state) {
         this.state = state;
     }
 
     @NotNull
-    public Type getSamWrapperClass(@NotNull final SamType samType, @NotNull final KtFile file, @NotNull final MemberCodegen<?> parentCodegen) {
-        return ContainerUtil.getOrCreate(samInterfaceToWrapperClass, Pair.create(samType, file),
-                                         new Factory<Type>() {
-                                             @Override
-                                             public Type create() {
-                                                 return new SamWrapperCodegen(state, samType, parentCodegen).genWrapper(file);
-                                             }
-                                         });
+    public Type getSamWrapperClass(
+            @NotNull final SamType samType,
+            @NotNull final KtFile file,
+            @NotNull ExpressionCodegen expressionCodegen
+    ) {
+        final MemberCodegen<?> parentCodegen = expressionCodegen.getParentCodegen();
+        final boolean isInsideInline = InlineUtil.isInlineOrContainingInline(expressionCodegen.getContext().getContextDescriptor());
+        return ContainerUtil.getOrCreate(
+                samInterfaceToWrapperClass,
+                new Triple<SamType, KtFile, Boolean>(
+                        samType,
+                        file,
+                        isInsideInline
+                ),
+                new Factory<Type>() {
+                    @Override
+                    public Type create() {
+                        return new SamWrapperCodegen(state, samType, parentCodegen, isInsideInline).genWrapper(file);
+                    }
+                }
+        );
     }
 }

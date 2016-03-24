@@ -341,6 +341,12 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
         doTest(fileName);
     }
 
+    @TestMetadata("samAdapterAndInlenedOne.kt")
+    public void testSamAdapterAndInlenedOne() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeText/samAdapterAndInlenedOne.kt");
+        doTest(fileName);
+    }
+
     @TestMetadata("superFlagInMultiFileFacade.kt")
     public void testSuperFlagInMultiFileFacade() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeText/superFlagInMultiFileFacade.kt");
