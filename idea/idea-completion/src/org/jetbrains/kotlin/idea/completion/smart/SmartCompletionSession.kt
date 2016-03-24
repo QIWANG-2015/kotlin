@@ -29,8 +29,8 @@ import org.jetbrains.kotlin.idea.core.ExpectedInfos
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
 import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
 import org.jetbrains.kotlin.load.java.descriptors.SamConstructorDescriptorKindExclude
-import org.jetbrains.kotlin.psi.LambdaArgument
 import org.jetbrains.kotlin.psi.KtCodeFragment
+import org.jetbrains.kotlin.psi.LambdaArgument
 import org.jetbrains.kotlin.psi.ValueArgumentName
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getCall
@@ -60,7 +60,7 @@ class SmartCompletionSession(
 
     private val smartCompletion by lazy(LazyThreadSafetyMode.NONE) {
         expression?.let {
-            SmartCompletion(it, resolutionFacade, bindingContext, moduleDescriptor, isVisibleFilter,
+            SmartCompletion(it, resolutionFacade, bindingContext, moduleDescriptor, isVisibleFilter, indicesHelper(false),
                             prefixMatcher, originalSearchScope, toFromOriginalFileMapper,
                             callTypeAndReceiver, isJvmModule)
         }
@@ -193,7 +193,7 @@ class SmartCompletionSession(
                     override fun getValueArgumentList() = throw UnsupportedOperationException()
                 }
 
-                val expectedInfos = ExpectedInfos(bindingContext, resolutionFacade)
+                val expectedInfos = ExpectedInfos(bindingContext, resolutionFacade, indicesHelper(false))
                         .calculateForArgument(dummyCall, dummyArgument)
                 collector.addElements(LambdaItems.collect(expectedInfos))
             }
