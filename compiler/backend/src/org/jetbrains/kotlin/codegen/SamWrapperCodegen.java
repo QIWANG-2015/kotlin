@@ -69,6 +69,7 @@ public class SamWrapperCodegen {
         visibility = isInsideInline ? ACC_PUBLIC : NO_FLAG_PACKAGE_PRIVATE;
     }
 
+    @NotNull
     public Type genWrapper(@NotNull KtFile file) {
         // Name for generated class, in form of whatever$1
         FqName fqName = getWrapperName(file);

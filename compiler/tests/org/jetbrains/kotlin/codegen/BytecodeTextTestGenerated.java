@@ -341,9 +341,9 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
         doTest(fileName);
     }
 
-    @TestMetadata("samAdapterAndInlenedOne.kt")
-    public void testSamAdapterAndInlenedOne() throws Exception {
-        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeText/samAdapterAndInlenedOne.kt");
+    @TestMetadata("samAdapterAndInlinedOne.kt")
+    public void testSamAdapterAndInlinedOne() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeText/samAdapterAndInlinedOne.kt");
         doTest(fileName);
     }
 
