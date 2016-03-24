@@ -4765,6 +4765,12 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
             doTest(fileName);
         }
 
+        @TestMetadata("onMultipleLines.kt")
+        public void testOnMultipleLines() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/convertToStringTemplate/onMultipleLines.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("onlyForConcat.kt")
         public void testOnlyForConcat() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/convertToStringTemplate/onlyForConcat.kt");
