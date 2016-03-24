@@ -34,6 +34,9 @@
 - Complete private members from libraries in Evaluate Expression dialog
 - Show error message when debug info for some local variable is corrupted
 
+### Tools.Gradle
+- Added project property 'kotlin.incremental'
+
 ## 1.0.1-1
 
 ### Compiler
