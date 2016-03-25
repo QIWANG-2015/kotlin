@@ -180,8 +180,23 @@ public class SmartCastManager {
             @Nullable KtExpression calleeExpression,
             boolean recordExpressionType
     ) {
+        return checkAndRecordPossibleCast(
+                dataFlowValue, expectedType, null, expression, c, calleeExpression, recordExpressionType);
+    }
+
+    @Nullable
+    public static SmartCastResult checkAndRecordPossibleCast(
+            @NotNull DataFlowValue dataFlowValue,
+            @NotNull KotlinType expectedType,
+            @Nullable Function1<KotlinType, Boolean> additionalPredicate,
+            @Nullable KtExpression expression,
+            @NotNull ResolutionContext c,
+            @Nullable KtExpression calleeExpression,
+            boolean recordExpressionType
+    ) {
         for (KotlinType possibleType : c.dataFlowInfo.getCollectedTypes(dataFlowValue)) {
-            if (ArgumentTypeResolver.isSubtypeOfForArgumentType(possibleType, expectedType)) {
+            if (ArgumentTypeResolver.isSubtypeOfForArgumentType(possibleType, expectedType)
+                    && (additionalPredicate == null || additionalPredicate.invoke(possibleType))) {
                 if (expression != null) {
                     recordCastOrError(expression, possibleType, c.trace, dataFlowValue, recordExpressionType);
                 }

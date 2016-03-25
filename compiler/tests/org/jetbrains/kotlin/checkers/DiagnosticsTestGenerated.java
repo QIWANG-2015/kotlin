@@ -15458,6 +15458,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     doTest(fileName);
                 }
 
+                @TestMetadata("innerProtectedClass.kt")
+                public void testInnerProtectedClass() throws Exception {
+                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/scopes/protectedVisibility/innerProtectedClass.kt");
+                    doTest(fileName);
+                }
+
                 @TestMetadata("javaInheritedInKotlin.kt")
                 public void testJavaInheritedInKotlin() throws Exception {
                     String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/scopes/protectedVisibility/javaInheritedInKotlin.kt");
@@ -15473,6 +15479,18 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 @TestMetadata("protectedCallOnSubClass.kt")
                 public void testProtectedCallOnSubClass() throws Exception {
                     String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/scopes/protectedVisibility/protectedCallOnSubClass.kt");
+                    doTest(fileName);
+                }
+
+                @TestMetadata("smartcastOnExtensionReceiver.kt")
+                public void testSmartcastOnExtensionReceiver() throws Exception {
+                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/scopes/protectedVisibility/smartcastOnExtensionReceiver.kt");
+                    doTest(fileName);
+                }
+
+                @TestMetadata("withSmartcast.kt")
+                public void testWithSmartcast() throws Exception {
+                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/scopes/protectedVisibility/withSmartcast.kt");
                     doTest(fileName);
                 }
             }
