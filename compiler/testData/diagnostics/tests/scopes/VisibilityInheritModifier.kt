@@ -14,7 +14,7 @@ class C : A() {
 
 //------------
 open class D {
-    <!INCOMPATIBLE_MODIFIERS!>private<!> <!INCOMPATIBLE_MODIFIERS!>open<!> fun self() : D = this
+    <!INCOMPATIBLE_MODIFIERS!>private<!> open fun self() : D = this
 }
 
 class E : D() {

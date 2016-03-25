@@ -1,3 +1,3 @@
-<!INCOMPATIBLE_MODIFIERS!>open<!> <!INCOMPATIBLE_MODIFIERS!>sealed<!> class Base {
+<!INCOMPATIBLE_MODIFIERS!>open<!> sealed class Base {
 
 }

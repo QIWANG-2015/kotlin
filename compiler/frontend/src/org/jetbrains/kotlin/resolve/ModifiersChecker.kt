@@ -217,9 +217,6 @@ object ModifierCheckerCore {
                 if (incorrectNodes.add(firstNode)) {
                     trace.report(Errors.INCOMPATIBLE_MODIFIERS.on(firstNode.psi, first, second))
                 }
-                if (incorrectNodes.add(secondNode)) {
-                    trace.report(Errors.INCOMPATIBLE_MODIFIERS.on(secondNode.psi, second, first))
-                }
             }
         }
     }

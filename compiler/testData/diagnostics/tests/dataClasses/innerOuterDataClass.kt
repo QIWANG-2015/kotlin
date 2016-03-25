@@ -1,1 +1,1 @@
-<!WRONG_MODIFIER_CONTAINING_DECLARATION!>inner<!> <!INCOMPATIBLE_MODIFIERS!>data<!> class Outer(val x: Int)
+<!WRONG_MODIFIER_CONTAINING_DECLARATION!>inner<!> data class Outer(val x: Int)

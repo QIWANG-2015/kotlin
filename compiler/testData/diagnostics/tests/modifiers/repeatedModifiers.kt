@@ -1,6 +1,6 @@
 abstract <!REPEATED_MODIFIER!>abstract<!> class Foo
 public <!REPEATED_MODIFIER!>public<!> class Bar
-<!INCOMPATIBLE_MODIFIERS!>open<!> <!REPEATED_MODIFIER!>open<!> <!INCOMPATIBLE_MODIFIERS!>final<!> class Baz {
+<!INCOMPATIBLE_MODIFIERS!>open<!> <!REPEATED_MODIFIER!>open<!> final class Baz {
     private <!REPEATED_MODIFIER!>private<!> fun foo() {}
 }
 
@@ -11,7 +11,7 @@ class Bzz(public <!REPEATED_MODIFIER!>public<!> val q: Int = 1) {
         <!REDUNDANT_MODIFIER_IN_GETTER!>public<!> <!REPEATED_MODIFIER!>public<!> get() = 3
 
     val z: Int
-        <!WRONG_MODIFIER_TARGET!>open<!> <!INCOMPATIBLE_MODIFIERS!>final<!> get() = 4
+        <!WRONG_MODIFIER_TARGET!>open<!> <!WRONG_MODIFIER_TARGET!>final<!> get() = 4
 
     public <!REPEATED_MODIFIER!>public<!> class B(public <!REPEATED_MODIFIER!>public<!> val z: Int = 1) {
         public <!REPEATED_MODIFIER!>public<!> val y: Int = 2
