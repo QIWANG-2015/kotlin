@@ -6061,6 +6061,12 @@ public class QuickFixTestGenerated extends AbstractQuickFixTest {
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("idea/testData/quickfix/redundantVisibilityModifier"), Pattern.compile("^([\\w\\-_]+)\\.kt$"), true);
         }
 
+        @TestMetadata("protected.kt")
+        public void testProtected() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/quickfix/redundantVisibilityModifier/protected.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("simple.kt")
         public void testSimple() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/quickfix/redundantVisibilityModifier/simple.kt");

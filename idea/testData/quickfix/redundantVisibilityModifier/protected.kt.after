@@ -1,0 +1,4 @@
+// "Make visibility private" "true"
+class C {
+    private fun foo() {}
+}
