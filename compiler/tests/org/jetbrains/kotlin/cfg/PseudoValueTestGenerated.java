@@ -168,6 +168,12 @@ public class PseudoValueTestGenerated extends AbstractPseudoValueTest {
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/cfg/controlStructures"), Pattern.compile("^(.+)\\.kt$"), true);
             }
 
+            @TestMetadata("breakContinueInTryFinally.kt")
+            public void testBreakContinueInTryFinally() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/cfg/controlStructures/breakContinueInTryFinally.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("continueInDoWhile.kt")
             public void testContinueInDoWhile() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/cfg/controlStructures/continueInDoWhile.kt");

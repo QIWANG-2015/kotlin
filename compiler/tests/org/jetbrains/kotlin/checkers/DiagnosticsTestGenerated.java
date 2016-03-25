@@ -127,6 +127,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
             doTest(fileName);
         }
 
+        @TestMetadata("breakInsideLocal.kt")
+        public void testBreakInsideLocal() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/breakInsideLocal.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("Builders.kt")
         public void testBuilders() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/Builders.kt");
@@ -2844,6 +2850,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
             @TestMetadata("backingFieldInsideGetter.kt")
             public void testBackingFieldInsideGetter() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/controlFlowAnalysis/backingFieldInsideGetter.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("breakContinueInTryFinally.kt")
+            public void testBreakContinueInTryFinally() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/controlFlowAnalysis/breakContinueInTryFinally.kt");
                 doTest(fileName);
             }
 
