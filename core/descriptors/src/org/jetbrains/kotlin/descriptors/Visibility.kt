@@ -22,6 +22,16 @@ abstract class Visibility protected constructor(
         val name: String,
         val isPublicAPI: Boolean
 ) {
+    /**
+     * @param receiver should be specified only for checking if member call meets visibility requirements
+     *
+     * if receiver is null visibility may perform some basic checks,
+     * but it should be monotonically decreasing by receiver non-nullness.
+     *
+     * In other words, if isVisible(null, x, y) == false then it should return false for any receiver value
+     *
+     * There is a special receiverValue Visibilities.RECEIVER_DOES_NOT_EXIST that implementations should be aware of
+     */
     abstract fun isVisible(receiver: ReceiverValue?, what: DeclarationDescriptorWithVisibility, from: DeclarationDescriptor): Boolean
 
     /**

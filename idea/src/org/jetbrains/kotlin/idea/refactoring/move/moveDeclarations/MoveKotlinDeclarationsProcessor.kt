@@ -239,8 +239,8 @@ class MoveKotlinDeclarationsProcessor(
         fun DeclarationDescriptor.isVisibleIn(where: DeclarationDescriptor): Boolean {
             return when {
                 this !is DeclarationDescriptorWithVisibility -> true
-                !Visibilities.isVisibleWithIrrelevantReceiver(this, where) -> false
-                this is ConstructorDescriptor -> Visibilities.isVisibleWithIrrelevantReceiver(containingDeclaration, where)
+                !Visibilities.isVisibleIgnoringReceiverReceiver(this, where) -> false
+                this is ConstructorDescriptor -> Visibilities.isVisibleIgnoringReceiverReceiver(containingDeclaration, where)
                 else -> true
             }
         }

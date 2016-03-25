@@ -88,6 +88,10 @@ public class Visibilities {
         @Override
         public boolean isVisible(@Nullable ReceiverValue thisObject, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from) {
             if (PRIVATE.isVisible(thisObject, what, from)) {
+                // See Visibility.isVisible contract
+                if (thisObject == null) return true;
+                if (thisObject == RECEIVER_DOES_NOT_EXIST) return false;
+
                 DeclarationDescriptor classDescriptor = DescriptorUtils.getParentOfType(what, ClassDescriptor.class);
 
                 if (classDescriptor != null && thisObject instanceof ThisClassReceiver) {
@@ -223,12 +227,20 @@ public class Visibilities {
     }
 
     /**
-     * Receiver used only for visibility PRIVATE_TO_THIS.
-     * For all other visibilities this method give correct result.
+     * @see Visibility.isVisible contract
      */
-    public static boolean isVisibleWithIrrelevantReceiver(@NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from) {
+    public static boolean isVisibleIgnoringReceiverReceiver(@NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from) {
         return findInvisibleMember(null, what, from) == null;
     }
+
+    /**
+     * @see Visibility.isVisible contract
+     * @see Visibilities.RECEIVER_DOES_NOT_EXIST
+     */
+    public static boolean isVisibleWithNonExistingReceiver(@NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from) {
+        return findInvisibleMember(RECEIVER_DOES_NOT_EXIST, what, from) == null;
+    }
+
 
     @Nullable
     public static DeclarationDescriptorWithVisibility findInvisibleMember(
@@ -284,6 +296,21 @@ public class Visibilities {
     }
 
     public static final Visibility DEFAULT_VISIBILITY = PUBLIC;
+
+    /**
+     * This value should be used for receiverValue parameter of Visibility.isVisible
+     * iff there is intention to determine if member is visible independently of receiver argument.
+     *
+     * It differs from 'null' as receiverValue in a sense that latter force visibility
+     * to skip receiver-dependent checks while RECEIVER_DOES_NOT_EXIST force to fail them.
+     */
+    private static final ReceiverValue RECEIVER_DOES_NOT_EXIST = new ReceiverValue() {
+        @NotNull
+        @Override
+        public KotlinType getType() {
+            throw new IllegalStateException("This method should not be called");
+        }
+    };
 
     public static boolean isPrivate(@NotNull Visibility visibility) {
         return visibility == PRIVATE || visibility == PRIVATE_TO_THIS;
