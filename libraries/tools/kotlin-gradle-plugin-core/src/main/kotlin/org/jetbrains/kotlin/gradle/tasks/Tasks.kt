@@ -457,6 +457,9 @@ open class KotlinCompile() : AbstractKotlinCompile<K2JVMCompilerArguments>() {
             outputDir: File,
             args: K2JVMCompilerArguments
     ): ExitCode {
+        logger.kotlinDebug("Removing all kotlin classes $outputDir")
+        outputDir.deleteRecursively()
+        outputDir.mkdirs()
         val moduleFile = makeModuleFile(args.moduleName, isTest = false, outputDir = outputDir, sourcesToCompile = sourcesToCompile, javaSourceRoots = getJavaSourceRoots(), classpath = classpath, friendDirs = listOf())
         args.module = moduleFile.absolutePath
         val messageCollector = GradleMessageCollector(logger)
