@@ -106,7 +106,7 @@ object ByDescriptorIndexer : DecompiledTextIndexer<String> {
         return listOf(descriptor.toStringKey())
     }
 
-    fun getDeclarationForDescriptor(descriptor: DeclarationDescriptor, file: KtDecompiledFile): KtDeclaration? {
+    internal fun getDeclarationForDescriptor(descriptor: DeclarationDescriptor, file: KtDecompiledFile): KtDeclaration? {
         val original = descriptor.original
 
         if (original is ValueParameterDescriptor) {

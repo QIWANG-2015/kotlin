@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.classId
+import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOriginKind
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedPropertyDescriptor
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedSimpleFunctionDescriptor
@@ -43,32 +44,33 @@ interface LightMemberOriginForCompiledElement : LightMemberOrigin {
 }
 
 
-data class LightMemberOriginForCompiledField(val field: PsiField, val file: KtClsFile) : LightMemberOriginForCompiledElement {
+data class LightMemberOriginForCompiledField(val psiField: PsiField, val file: KtClsFile) : LightMemberOriginForCompiledElement {
     override fun copy(): LightMemberOrigin {
-        return LightMemberOriginForCompiledField(field.copy() as PsiField, file)
+        return LightMemberOriginForCompiledField(psiField.copy() as PsiField, file)
     }
 
     override val originalElement: KtDeclaration?
         get() {
-            val desc = MapPsiToAsmDesc.typeDesc(this.field.type)
-            val signature = MemberSignature.fromFieldNameAndDesc(this.field.name!!, desc)
-            return file.getDeclaration(ByJvmSignatureIndexer, ClassNameAndSignature(this.field.relativeClassName(), signature))
+            val desc = MapPsiToAsmDesc.typeDesc(psiField.type)
+            val signature = MemberSignature.fromFieldNameAndDesc(psiField.name!!, desc)
+            return file.getDeclaration(ByJvmSignatureIndexer, ClassNameAndSignature(psiField.relativeClassName(), signature))
         }
 }
 
-data class LightMemberOriginForCompiledMethod(val method: PsiMethod, val file: KtClsFile) : LightMemberOriginForCompiledElement {
+data class LightMemberOriginForCompiledMethod(val psiMethod: PsiMethod, val file: KtClsFile) : LightMemberOriginForCompiledElement {
+    override fun copy(): LightMemberOrigin {
+        return LightMemberOriginForCompiledMethod(psiMethod.copy() as PsiMethod, file)
+    }
+
     override val originalElement: KtDeclaration?
         get() {
-            val desc = MapPsiToAsmDesc.methodDesc(method)
-            val signature = MemberSignature.fromMethodNameAndDesc(method.name, desc)
-            return file.getDeclaration(ByJvmSignatureIndexer, ClassNameAndSignature(method.relativeClassName(), signature))
+            val desc = MapPsiToAsmDesc.methodDesc(psiMethod)
+            val signature = MemberSignature.fromMethodNameAndDesc(psiMethod.name, desc)
+            return file.getDeclaration(ByJvmSignatureIndexer, ClassNameAndSignature(psiMethod.relativeClassName(), signature))
         }
-
-    override fun copy(): LightMemberOrigin {
-        return LightMemberOriginForCompiledMethod(method.copy() as PsiMethod, file)
-    }
 }
 
+//TODO_R: comment
 private data class ClassNameAndSignature(val relativeClassName: List<Name>, val memberSignature: MemberSignature)
 
 private fun PsiMember.relativeClassName(): List<Name> {
@@ -76,10 +78,10 @@ private fun PsiMember.relativeClassName(): List<Name> {
 }
 
 private fun ClassDescriptor.relativeClassName(): List<Name> {
-    return classId.relativeClassName.pathSegments().drop(1).toList().orEmpty()
+    return classId.relativeClassName.pathSegments().drop(1).orEmpty()
 }
 
-private fun ClassDescriptor.desc(): String = "L" + this.classId.packageFqName.asString().replace(".", "/") + "/" + this.classId.relativeClassName.asString().replace(".", "$") + ";"
+private fun ClassDescriptor.desc(): String = "L" + JvmClassName.byClassId(classId).internalName + ";"
 
 private object ByJvmSignatureIndexer : DecompiledTextIndexer<ClassNameAndSignature> {
     override fun indexDescriptor(descriptor: DeclarationDescriptor): Collection<ClassNameAndSignature> {
@@ -90,6 +92,7 @@ private object ByJvmSignatureIndexer : DecompiledTextIndexer<ClassNameAndSignatu
         }
 
         if (descriptor is ClassDescriptor) {
+            @Suppress("NON_EXHAUSTIVE_WHEN")
             when (descriptor.kind) {
                 ClassKind.ENUM_ENTRY -> {
                     val enumClass = descriptor.containingDeclaration as ClassDescriptor
@@ -110,8 +113,7 @@ private object ByJvmSignatureIndexer : DecompiledTextIndexer<ClassNameAndSignatu
         if (descriptor is DeserializedSimpleFunctionDescriptor) {
             JvmProtoBufUtil.getJvmMethodSignature(descriptor.proto, descriptor.nameResolver, descriptor.typeTable)?.let {
                 val signature = MemberSignature.fromMethodNameAndDesc(it)
-                val id = (descriptor.containingDeclaration as? ClassDescriptor)?.relativeClassName().orEmpty()
-                save(id, signature)
+                save((descriptor.containingDeclaration as? ClassDescriptor)?.relativeClassName().orEmpty(), signature)
             }
         }
         if (descriptor is DeserializedPropertyDescriptor) {
@@ -121,16 +123,15 @@ private object ByJvmSignatureIndexer : DecompiledTextIndexer<ClassNameAndSignatu
                 val signature = proto.getExtension(JvmProtoBuf.propertySignature)
                 if (signature.hasField()) {
                     val field = signature.field
-                    save(className, MemberSignature.fromFieldNameAndDesc(descriptor.name.asString(), descriptor.nameResolver.getString(field.desc))) //TODO_R: test this line
+                    //TODO_R: test this line
+                    //TODO_R: test with jvmName
+                    save(className, MemberSignature.fromFieldNameAndDesc(descriptor.nameResolver.getString(field.name), descriptor.nameResolver.getString(field.desc)))
                 }
                 if (signature.hasGetter()) {
                     save(className, MemberSignature.fromMethod(descriptor.nameResolver, signature.getter))
                 }
                 if (signature.hasSetter()) {
                     save(className, MemberSignature.fromMethod(descriptor.nameResolver, signature.setter))
-                }
-                if (signature.hasSyntheticMethod()) {
-                    save(className, MemberSignature.fromMethod(descriptor.nameResolver, signature.syntheticMethod))
                 }
             }
         }

@@ -48,6 +48,10 @@ class KtLightClassForDecompiledDeclaration(
         return delegate.ownFields.map { KtLightFieldImpl.create(LightMemberOriginForCompiledField(it, file), it, this) }
     }
 
+    override fun getOwnMethods(): List<PsiMethod> {
+        return delegate.ownMethods.map { KtLightMethodImpl.create(it, LightMemberOriginForCompiledMethod(it, file), this) }
+    }
+
     override fun getNavigationElement() = origin?.navigationElement ?: file
 
     override fun getDelegate() = clsClass
@@ -55,10 +59,6 @@ class KtLightClassForDecompiledDeclaration(
     override fun getOrigin() = origin
 
     override fun getFqName() = fqName
-
-    override fun getOwnMethods(): List<PsiMethod> {
-        return delegate.ownMethods.map { KtLightMethodImpl.create(it, LightMemberOriginForCompiledMethod(it, file), this) }
-    }
 
     override fun getParent() = clsClass.parent
 

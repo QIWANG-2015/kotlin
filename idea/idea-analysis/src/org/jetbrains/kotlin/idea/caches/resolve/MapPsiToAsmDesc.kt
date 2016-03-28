@@ -17,14 +17,17 @@
 package org.jetbrains.kotlin.idea.caches.resolve
 
 import com.intellij.psi.*
+import org.jetbrains.org.objectweb.asm.Type
 
+//TODO_R: test constructor
 object MapPsiToAsmDesc {
     fun typeDesc(type: PsiType): String = when (type) {
-        PsiType.VOID -> "V"
+        PsiType.VOID -> Type.VOID_TYPE.descriptor
 
-        PsiType.BOOLEAN -> "Z"
+        PsiType.BOOLEAN -> Type.BOOLEAN_TYPE.descriptor
 
-        PsiType.CHAR -> "C"
+        //TODO_R:
+        PsiType.CHAR -> Type.CHAR_TYPE.descriptor
         PsiType.INT -> "I"
         PsiType.BYTE -> "B"
         PsiType.SHORT -> "S"
@@ -33,18 +36,19 @@ object MapPsiToAsmDesc {
         PsiType.FLOAT -> "F"
         PsiType.DOUBLE -> "D"
 
+        //TODO_R: test MULTIDIMENT
         is PsiArrayType -> "[" + typeDesc(type.componentType)
 
         is PsiClassType -> {
             val resolved = type.resolve()
             when (resolved) {
-                is PsiTypeParameter -> resolved.superTypes.firstOrNull()?.let { typeDesc(it) } ?: "Ljava/lang/Object;"
+                is PsiTypeParameter -> resolved.superTypes.firstOrNull()?.let { typeDesc(it) } ?: "Ljava/lang/Object;" // TODO_R:
                 is PsiClass -> classDesc(resolved)
-                else -> error("TODO") //TODO_R:
+                else -> error("TODO") //TODO_R: LOG:
             }
 
         }
-        else -> error("TODO") // TODO_R:
+        else -> error("TODO") // TODO_R: LOG
     }
 
     private fun classDesc(psiClass: PsiClass) = buildString {

@@ -44,8 +44,8 @@ open class KtDecompiledFile(
         decompiledText.drop()
     }
 
-    fun <T : Any> getDeclaration(mapper: DecompiledTextIndexer<T>, key: T): KtDeclaration? {
-        val range = decompiledText.get().index.getRange(mapper, key) ?: return null
+    fun <T : Any> getDeclaration(indexer: DecompiledTextIndexer<T>, key: T): KtDeclaration? {
+        val range = decompiledText.get().index.getRange(indexer, key) ?: return null
         return PsiTreeUtil.findElementOfClassAtRange(this@KtDecompiledFile, range.startOffset, range.endOffset, KtDeclaration::class.java)
     }
 }
