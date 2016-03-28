@@ -22,10 +22,13 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.util.OperatorNameConventions
 
 class ArrayInDataClassInspection : AbstractKotlinInspection() {
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
@@ -33,16 +36,38 @@ class ArrayInDataClassInspection : AbstractKotlinInspection() {
             override fun visitClass(klass: KtClass) {
                 if (!klass.isData()) return
                 val constructor = klass.getPrimaryConstructor() ?: return
+                if (hasOverriddenEqualsAndHashCode(klass)) return
                 val context = constructor.analyze(BodyResolveMode.PARTIAL)
                 for (parameter in constructor.valueParameters) {
                     if (!parameter.hasValOrVar()) continue
-                    val type = context.get(BindingContext.TYPE, parameter.typeReference) ?: return
+                    val type = context.get(BindingContext.TYPE, parameter.typeReference) ?: continue
                     if (KotlinBuiltIns.isArray(type) || KotlinBuiltIns.isPrimitiveArray(type)) {
                         holder.registerProblem(parameter,
                                                "Array property in data class: it's recommended to override equals() / hashCode()",
                                                ProblemHighlightType.WEAK_WARNING)
                     }
                 }
+            }
+
+            private fun hasOverriddenEqualsAndHashCode(klass: KtClass): Boolean {
+                var overriddenEquals = false
+                var overriddenHashCode = false
+                for (declaration in klass.declarations) {
+                    if (declaration !is KtFunction) continue
+                    if (!declaration.hasModifier(KtTokens.OVERRIDE_KEYWORD)) continue
+                    if (declaration.nameAsName == OperatorNameConventions.EQUALS && declaration.valueParameters.size == 1) {
+                        val parameter = declaration.valueParameters.first()
+                        val context = declaration.analyze(BodyResolveMode.PARTIAL)
+                        val type = context.get(BindingContext.TYPE, parameter.typeReference)
+                        if (type != null && KotlinBuiltIns.isNullableAny(type)) {
+                            overriddenEquals = true
+                        }
+                    }
+                    if (declaration.name == "hashCode" && declaration.valueParameters.size == 0) {
+                        overriddenHashCode = true
+                    }
+                }
+                return overriddenEquals && overriddenHashCode
             }
         }
     }
