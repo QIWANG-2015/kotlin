@@ -1,7 +1,7 @@
 open class S(val a: Any, val b: Any, val c: Any) {}
 
 interface A {
-    companion object : S(<!UNRESOLVED_REFERENCE!>prop1<!>, <!UNRESOLVED_REFERENCE!>prop2<!>, <!UNRESOLVED_REFERENCE!>func<!>()) {
+    companion object : S(<!INSTANCE_ACCESS_BEFORE_SUPER_CALL, UNINITIALIZED_VARIABLE!>prop1<!>, <!INSTANCE_ACCESS_BEFORE_SUPER_CALL!>prop2<!>, <!INSTANCE_ACCESS_BEFORE_SUPER_CALL!>func<!>()) {
         val prop1 = 1
         val prop2: Int
             get() = 1
@@ -10,7 +10,7 @@ interface A {
 }
 
 class B {
-    companion object : S(<!UNRESOLVED_REFERENCE!>prop1<!>, <!UNRESOLVED_REFERENCE!>prop2<!>, <!UNRESOLVED_REFERENCE!>func<!>()) {
+    companion object : S(<!INSTANCE_ACCESS_BEFORE_SUPER_CALL, UNINITIALIZED_VARIABLE!>prop1<!>, <!INSTANCE_ACCESS_BEFORE_SUPER_CALL!>prop2<!>, <!INSTANCE_ACCESS_BEFORE_SUPER_CALL!>func<!>()) {
         val prop1 = 1
         val prop2: Int
             get() = 1

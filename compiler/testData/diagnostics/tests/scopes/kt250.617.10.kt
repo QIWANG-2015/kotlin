@@ -5,7 +5,7 @@ import java.util.HashMap
 
 //KT-250 Incorrect variable resolve in constructor arguments of superclass
 open class A(val x: Int)
-class B(<!UNUSED_PARAMETER!>y<!>: Int) : A(<!UNRESOLVED_REFERENCE!>x<!>)  //x is resolved as a property in a, so no error is generated
+class B(<!UNUSED_PARAMETER!>y<!>: Int) : A(<!INSTANCE_ACCESS_BEFORE_SUPER_CALL!>x<!>)  //x is resolved as a property in a, so no error is generated
 
 //KT-617 Prohibit dollars in call to superclass constructors
 open class M(<!UNUSED_PARAMETER!>p<!>: Int)
@@ -29,9 +29,9 @@ abstract class TagWithText(name : String) : Tag(name) {
 open class BodyTag(name : String) : TagWithText(name) {
 }
 
-class Body() : BodyTag(<!UNRESOLVED_REFERENCE!>name<!>) { // Must be an error!
+class Body() : BodyTag(<!INSTANCE_ACCESS_BEFORE_SUPER_CALL!>name<!>) { // Must be an error!
 }
-class Body1() : BodyTag(<!NO_THIS!>this<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>name<!>) { // Must be an error!
+class Body1() : BodyTag(<!INSTANCE_ACCESS_BEFORE_SUPER_CALL!>this<!>.name) { // Must be an error!
 }
 
 //more tests
@@ -40,10 +40,10 @@ open class X(<!UNUSED_PARAMETER!>p<!>: Int, <!UNUSED_PARAMETER!>r<!>: Int) {
     val s = "s"
 }
 
-class Y(i: Int) : X(i, <!UNRESOLVED_REFERENCE!>rrr<!>) {
+class Y(i: Int) : X(i, <!INSTANCE_ACCESS_BEFORE_SUPER_CALL, UNINITIALIZED_VARIABLE!>rrr<!>) {
     val rrr = 3
 }
 
-class Z(val i: Int) : X(<!UNRESOLVED_REFERENCE!>s<!>, <!UNRESOLVED_REFERENCE!>x<!>) {
+class Z(val i: Int) : X(<!INSTANCE_ACCESS_BEFORE_SUPER_CALL, TYPE_MISMATCH!>s<!>, <!INSTANCE_ACCESS_BEFORE_SUPER_CALL, UNINITIALIZED_VARIABLE!>x<!>) {
     val x = 2
 }

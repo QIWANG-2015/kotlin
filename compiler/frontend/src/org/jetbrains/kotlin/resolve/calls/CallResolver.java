@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.DescriptorUtilsKt;
 import org.jetbrains.kotlin.resolve.lazy.ForceResolveUtil;
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope;
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver;
+import org.jetbrains.kotlin.resolve.scopes.utils.ScopeUtilsKt;
 import org.jetbrains.kotlin.types.KotlinType;
 import org.jetbrains.kotlin.types.TypeSubstitutor;
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingContext;
@@ -267,7 +268,8 @@ public class CallResolver {
                     ResolveKind.FUNCTION);
         }
         else if (calleeExpression instanceof KtConstructorCalleeExpression) {
-            return (OverloadResolutionResults) resolveCallForConstructor(context, (KtConstructorCalleeExpression) calleeExpression);
+            return (OverloadResolutionResults) resolveCallForConstructor(context, ScopeUtilsKt.getImplicitReceiversHierarchy(context.scope),
+                                                                         (KtConstructorCalleeExpression)calleeExpression);
         }
         else if (calleeExpression instanceof KtConstructorDelegationReferenceExpression) {
             KtConstructorDelegationCall delegationCall = (KtConstructorDelegationCall) context.call.getCallElement();
@@ -301,8 +303,9 @@ public class CallResolver {
         return resolveCallForInvoke(context.replaceCall(call), tracingForInvoke);
     }
 
-    private OverloadResolutionResults<ConstructorDescriptor> resolveCallForConstructor(
+    public OverloadResolutionResults<ConstructorDescriptor> resolveCallForConstructor(
             @NotNull BasicCallResolutionContext context,
+            @NotNull List<ReceiverParameterDescriptor> implicitReceivers,
             @NotNull KtConstructorCalleeExpression expression
     ) {
         assert context.call.getExplicitReceiver() == null :
@@ -335,7 +338,7 @@ public class CallResolver {
         }
 
         Pair<Collection<ResolutionCandidate<ConstructorDescriptor>>, BasicCallResolutionContext> candidatesAndContext =
-                prepareCandidatesAndContextForConstructorCall(constructedType, context);
+                prepareCandidatesAndContextForConstructorCall(constructedType, implicitReceivers, context);
 
         Collection<ResolutionCandidate<ConstructorDescriptor>> candidates = candidatesAndContext.getFirst();
         context = candidatesAndContext.getSecond();
@@ -415,7 +418,7 @@ public class CallResolver {
                                   DescriptorUtils.getSuperClassType(currentClassDescriptor);
 
         Pair<Collection<ResolutionCandidate<ConstructorDescriptor>>, BasicCallResolutionContext> candidatesAndContext =
-                prepareCandidatesAndContextForConstructorCall(superType, context);
+                prepareCandidatesAndContextForConstructorCall(superType, ScopeUtilsKt.getImplicitReceiversHierarchy(context.scope), context);
         Collection<ResolutionCandidate<ConstructorDescriptor>> candidates = candidatesAndContext.getFirst();
         context = candidatesAndContext.getSecond();
 
@@ -437,6 +440,7 @@ public class CallResolver {
     @NotNull
     private static Pair<Collection<ResolutionCandidate<ConstructorDescriptor>>, BasicCallResolutionContext> prepareCandidatesAndContextForConstructorCall(
             @NotNull KotlinType superType,
+            @NotNull List<ReceiverParameterDescriptor> implicitReceivers,
             @NotNull BasicCallResolutionContext context
     ) {
         if (!(superType.getConstructor().getDeclarationDescriptor() instanceof ClassDescriptor)) {
@@ -457,7 +461,7 @@ public class CallResolver {
         }
 
         Collection<ResolutionCandidate<ConstructorDescriptor>> candidates =
-                CallResolverUtilKt.createResolutionCandidatesForConstructors(context.scope, context.call, superClass, knownTypeParametersSubstitutor);
+                CallResolverUtilKt.createResolutionCandidatesForConstructors(implicitReceivers, context.call, superClass, knownTypeParametersSubstitutor);
 
         return new Pair<Collection<ResolutionCandidate<ConstructorDescriptor>>, BasicCallResolutionContext>(candidates, context);
     }

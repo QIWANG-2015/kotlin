@@ -33,12 +33,16 @@ import org.jetbrains.kotlin.lexer.KtTokens;
 import org.jetbrains.kotlin.psi.*;
 import org.jetbrains.kotlin.psi.psiUtil.PsiUtilsKt;
 import org.jetbrains.kotlin.resolve.calls.CallResolver;
+import org.jetbrains.kotlin.resolve.calls.context.BasicCallResolutionContext;
+import org.jetbrains.kotlin.resolve.calls.context.CheckArgumentTypesMode;
+import org.jetbrains.kotlin.resolve.calls.context.ContextDependency;
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall;
 import org.jetbrains.kotlin.resolve.calls.results.OverloadResolutionResults;
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo;
 import org.jetbrains.kotlin.resolve.calls.util.CallMaker;
 import org.jetbrains.kotlin.resolve.lazy.ForceResolveUtil;
 import org.jetbrains.kotlin.resolve.scopes.*;
+import org.jetbrains.kotlin.resolve.scopes.utils.ScopeUtilsKt;
 import org.jetbrains.kotlin.types.*;
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingServices;
 import org.jetbrains.kotlin.types.expressions.PreliminaryDeclarationVisitor;
@@ -242,7 +246,7 @@ public class BodyResolver {
             resolveSuperTypeEntryList(c.getOuterDataFlowInfo(), classOrObject, descriptor,
                                       descriptor.getUnsubstitutedPrimaryConstructor(),
                                       descriptor.getScopeForConstructorHeaderResolution(),
-                                      descriptor.getScopeForMemberDeclarationResolution());
+                                      descriptor.getScopeForInitializerResolution());
         }
     }
 
@@ -251,13 +255,13 @@ public class BodyResolver {
             @NotNull KtClassOrObject jetClass,
             @NotNull final ClassDescriptor descriptor,
             @Nullable final ConstructorDescriptor primaryConstructor,
-            @NotNull LexicalScope scopeForConstructorResolution,
-            @NotNull final LexicalScope scopeForMemberResolution
+            @NotNull final LexicalScope scopeForConstructorResolution,
+            @NotNull final LexicalScope scopeForInitializerResolution
     ) {
         final LexicalScope scopeForConstructor =
                 primaryConstructor == null
-                ? null
-                : FunctionDescriptorUtil.getFunctionInnerScope(scopeForConstructorResolution, primaryConstructor, trace);
+                ? scopeForInitializerResolution
+                : FunctionDescriptorUtil.getFunctionInnerScope(scopeForInitializerResolution, primaryConstructor, trace);
         final ExpressionTypingServices typeInferrer = expressionTypingServices; // TODO : flow
 
         final Map<KtTypeReference, KotlinType> supertypes = Maps.newLinkedHashMap();
@@ -285,13 +289,17 @@ public class BodyResolver {
                     }
                 }
                 KtExpression delegateExpression = specifier.getDelegateExpression();
+                LexicalScope scope;
+                if (primaryConstructor == null) {
+                    scope = scopeForInitializerResolution;
+                    trace.report(UNSUPPORTED.on(specifier, "Delegation without primary constructor is not supported"));
+                }
+                else {
+                    scope = new LexicalScopeImpl(scopeForConstructor, primaryConstructor, false, null, LexicalScopeKind.CLASS_DELEGATION);
+                }
                 if (delegateExpression != null) {
-                    LexicalScope scope = scopeForConstructor == null ? scopeForMemberResolution : scopeForConstructor;
                     KotlinType expectedType = supertype != null ? supertype : NO_EXPECTED_TYPE;
                     typeInferrer.getType(scope, delegateExpression, expectedType, outerDataFlowInfo, trace);
-                }
-                if (primaryConstructor == null) {
-                    trace.report(UNSUPPORTED.on(specifier, "Delegation without primary constructor is not supported"));
                 }
             }
 
@@ -311,9 +319,18 @@ public class BodyResolver {
                     recordSupertype(typeReference, trace.getBindingContext().get(BindingContext.TYPE, typeReference));
                     return;
                 }
-                OverloadResolutionResults<FunctionDescriptor> results = callResolver.resolveFunctionCall(
-                        trace, scopeForConstructor,
-                        CallMaker.makeConstructorCallWithoutTypeArguments(call), NO_EXPECTED_TYPE, outerDataFlowInfo, false);
+
+                LexicalScope scope = new LexicalScopeImpl(scopeForConstructor, primaryConstructor, false, null, LexicalScopeKind.CONSTRUCTOR_HEADER);
+                BasicCallResolutionContext context = BasicCallResolutionContext.create(
+                        trace, scope, CallMaker.makeConstructorCallWithoutTypeArguments(call), NO_EXPECTED_TYPE, outerDataFlowInfo, ContextDependency.INDEPENDENT,
+                        CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+                        /* isAnnotationContext = */ false
+                );
+
+                OverloadResolutionResults<ConstructorDescriptor> results =
+                        callResolver.resolveCallForConstructor(context,
+                                                               ScopeUtilsKt.getImplicitReceiversHierarchy(scopeForConstructorResolution),
+                                                               call.getCalleeExpression());
                 if (results.isSuccess()) {
                     KotlinType supertype = results.getResultingDescriptor().getReturnType();
                     recordSupertype(typeReference, supertype);

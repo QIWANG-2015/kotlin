@@ -28,10 +28,8 @@ import org.jetbrains.kotlin.resolve.calls.inference.constraintPosition.Constrain
 import org.jetbrains.kotlin.resolve.calls.inference.getNestedTypeVariables
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
 import org.jetbrains.kotlin.resolve.calls.tasks.ResolutionCandidate
-import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
-import org.jetbrains.kotlin.resolve.scopes.utils.getImplicitReceiversHierarchy
 import org.jetbrains.kotlin.resolve.validation.InfixValidator
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.TypeUtils.DONT_CARE
@@ -168,7 +166,7 @@ fun getEffectiveExpectedType(parameterDescriptor: ValueParameterDescriptor, argu
 }
 
 fun createResolutionCandidatesForConstructors(
-        lexicalScope: LexicalScope,
+        implicitReceivers: List<ReceiverParameterDescriptor>,
         call: Call,
         classWithConstructors: ClassDescriptor,
         knownSubstitutor: TypeSubstitutor? = null
@@ -184,7 +182,7 @@ fun createResolutionCandidatesForConstructors(
         val outerClassType = (classWithConstructors.containingDeclaration as? ClassDescriptor)?.defaultType ?: return emptyList()
         val substitutedOuterClassType = knownSubstitutor?.let { it.substitute(outerClassType, Variance.INVARIANT) } ?: outerClassType
 
-        val receiver = lexicalScope.getImplicitReceiversHierarchy().firstOrNull {
+        val receiver = implicitReceivers.firstOrNull {
             KotlinTypeChecker.DEFAULT.isSubtypeOf(it.type, substitutedOuterClassType)
         } ?: return emptyList()
 
