@@ -20,21 +20,3 @@ class E : D() {
     public override fun willBecomePublic() {
     }
 }
-
-class F {
-    protected val foo: Int = 0
-
-    protected fun bar() {}
-
-    protected class Nested
-}
-
-class G {
-    interface H {
-        protected val foo: Int = 0
-
-        protected fun bar() {}
-
-        protected class Nested
-    }
-}

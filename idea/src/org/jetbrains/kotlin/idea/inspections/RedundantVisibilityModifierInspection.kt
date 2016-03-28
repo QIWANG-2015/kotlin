@@ -21,35 +21,24 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementVisitor
 import org.jetbrains.kotlin.idea.core.implicitVisibility
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
-import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.addRemoveModifier.addModifier
+import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtModifierList
+import org.jetbrains.kotlin.psi.KtModifierListOwner
+import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.kotlin.psi.addRemoveModifier.removeModifier
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
-import org.jetbrains.kotlin.psi.psiUtil.isInheritable
 
 class RedundantVisibilityModifierInspection : AbstractKotlinInspection(), CleanupLocalInspectionTool {
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
         return object : KtVisitorVoid() {
             override fun visitDeclaration(dcl: KtDeclaration) {
                 val visibilityModifier = dcl.visibilityModifier() ?: return
-                val modifierType = visibilityModifier.node.elementType
-                if (modifierType == dcl.implicitVisibility()) {
+                if (visibilityModifier.node.elementType == dcl.implicitVisibility()) {
                     holder.registerProblem(visibilityModifier,
                                            "Redundant visibility modifier",
                                            ProblemHighlightType.LIKE_UNUSED_SYMBOL,
                                            RemoveVisibilityModifierFix())
-                }
-                if (modifierType == KtTokens.PROTECTED_KEYWORD) {
-                    val parentClass = dcl.getParentOfType<KtClass>(true) ?: return
-                    if (!parentClass.isInheritable()) {
-                        holder.registerProblem(visibilityModifier,
-                                               "'protected' modifier is effectively 'private' in a final class",
-                                               ProblemHighlightType.LIKE_UNUSED_SYMBOL,
-                                               MakeVisibilityPrivateFix()
-                        )
-                    }
                 }
             }
         }
@@ -65,18 +54,6 @@ class RedundantVisibilityModifierInspection : AbstractKotlinInspection(), Cleanu
             val modifierListOwner = descriptor.psiElement.getParentOfType<KtModifierListOwner>(true)
                                     ?: throw IllegalStateException("Can't find modifier list owner for modifier")
             removeModifier(modifierListOwner, modifierKeyword)
-        }
-    }
-
-    class MakeVisibilityPrivateFix : LocalQuickFix {
-        override fun getName(): String = "Make visibility private"
-
-        override fun getFamilyName(): String = name
-
-        override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
-            val modifierListOwner = descriptor.psiElement.getParentOfType<KtModifierListOwner>(true)
-                                    ?: throw IllegalStateException("Can't find modifier list owner for modifier")
-            addModifier(modifierListOwner, KtTokens.PRIVATE_KEYWORD)
         }
     }
 }

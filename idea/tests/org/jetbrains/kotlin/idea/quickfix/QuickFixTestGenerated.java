@@ -6053,18 +6053,33 @@ public class QuickFixTestGenerated extends AbstractQuickFixTest {
         }
     }
 
+    @TestMetadata("idea/testData/quickfix/protectedInFinal")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class ProtectedInFinal extends AbstractQuickFixTest {
+        public void testAllFilesPresentInProtectedInFinal() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("idea/testData/quickfix/protectedInFinal"), Pattern.compile("^([\\w\\-_]+)\\.kt$"), true);
+        }
+
+        @TestMetadata("protected.kt")
+        public void testProtected() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/quickfix/protectedInFinal/protected.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("protected2.kt")
+        public void testProtected2() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/quickfix/protectedInFinal/protected2.kt");
+            doTest(fileName);
+        }
+    }
+
     @TestMetadata("idea/testData/quickfix/redundantVisibilityModifier")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
     public static class RedundantVisibilityModifier extends AbstractQuickFixTest {
         public void testAllFilesPresentInRedundantVisibilityModifier() throws Exception {
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("idea/testData/quickfix/redundantVisibilityModifier"), Pattern.compile("^([\\w\\-_]+)\\.kt$"), true);
-        }
-
-        @TestMetadata("protected.kt")
-        public void testProtected() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/quickfix/redundantVisibilityModifier/protected.kt");
-            doTest(fileName);
         }
 
         @TestMetadata("simple.kt")
