@@ -16,39 +16,17 @@
 
 package org.jetbrains.kotlin.idea.spring.generate
 
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFile
+import com.intellij.openapi.module.Module
 import com.intellij.psi.xml.XmlFile
-import com.intellij.spring.SpringBundle
 import com.intellij.spring.SpringManager
 import com.intellij.spring.model.actions.generate.GenerateSpringBeanDependenciesUtil
-import com.intellij.spring.model.utils.SpringModelUtils
 import icons.SpringApiIcons
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.actions.generate.KotlinGenerateActionBase
-import org.jetbrains.kotlin.idea.editor.BatchTemplateRunner
-import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 
-abstract class GenerateKotlinSpringBeanDependencyAction(
-        text: String,
-        private val injectionKind: SpringDependencyInjectionKind
-) : KotlinGenerateActionBase() {
-    class Constructor: GenerateKotlinSpringBeanDependencyAction(
-            SpringBundle.message("action.Spring.Beans.Generate.Constructor.Dependency.Action.text"),
-            SpringDependencyInjectionKind.CONSTRUCTOR
-    )
-    class Setter: GenerateKotlinSpringBeanDependencyAction(
-            SpringBundle.message("action.Spring.Beans.Generate.Setter.Dependency.Action.text"),
-            SpringDependencyInjectionKind.SETTER
-    )
-    class LateinitProperty: GenerateKotlinSpringBeanDependencyAction(
-            "Spring 'lateinit' Dependency...",
-            SpringDependencyInjectionKind.LATEINIT_PROPERTY
-    )
-
+abstract class GenerateKotlinSpringBeanDependencyAction(text: String) : KotlinGenerateActionBase() {
     init {
         templatePresentation.text = text
         templatePresentation.icon = SpringApiIcons.Spring
@@ -61,13 +39,5 @@ abstract class GenerateKotlinSpringBeanDependencyAction(
         return SpringManager.getInstance(module.project).getCombinedModel(module).configFiles.any { it is XmlFile }
     }
 
-    override fun invoke(project: Project, editor: Editor, file: PsiFile) {
-        val klass = getTargetClass(editor, file) as? KtClass ?: return
-        val lightClass = klass.toLightClass() ?: return
-        val springModel = SpringModelUtils.getInstance().getPsiClassSpringModel(lightClass)
-        val templates = project.executeWriteCommand<List<BatchTemplateRunner>>("") {
-            generateDependenciesFor(springModel, lightClass, injectionKind)
-        }
-        templates.forEach { it.runTemplates() }
-    }
+    abstract fun checkContext(module: Module): Boolean
 }
