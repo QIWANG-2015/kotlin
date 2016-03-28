@@ -52,7 +52,7 @@ class KotlinMavenPluginPhaseInspection : DomElementsInspection<MavenDomProjectMo
 
         val project = domFileElement.rootElement
         val kotlinPlugin = project.build.plugins.plugins.firstOrNull { it.isKotlinMavenPlugin() } ?: return
-        val hasJavaFiles = hasJavaFiles(module)
+        val hasJavaFiles = module.hasJavaFiles()
 
         val executions = mavenProject.plugins
                 .filter { it.isKotlinMavenPlugin() }
@@ -117,13 +117,8 @@ class KotlinMavenPluginPhaseInspection : DomElementsInspection<MavenDomProjectMo
 
         override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
             val pom = PomFile(file)
-            val phase = if (hasJavaFiles(module)) {
-                PomFile.DefaultPhases.ProcessSources
-            } else {
-                PomFile.DefaultPhases.Compile
-            }
 
-            pom.addExecution(kotlinPlugin, goal, phase, listOf(goal))
+            pom.addKotlinExecution(module, kotlinPlugin, goal, PomFile.getPhase(module.hasJavaFiles(), false), false, listOf(goal))
         }
     }
 
@@ -148,8 +143,8 @@ class KotlinMavenPluginPhaseInspection : DomElementsInspection<MavenDomProjectMo
     }
 }
 
-private fun hasJavaFiles(module: Module): Boolean {
-    return FileTypeIndex.containsFileOfType(JavaFileType.INSTANCE, GlobalSearchScope.moduleScope(module))
+private fun Module.hasJavaFiles(): Boolean {
+    return FileTypeIndex.containsFileOfType(JavaFileType.INSTANCE, GlobalSearchScope.moduleScope(this))
 }
 
 private fun MavenDomPlugin.isKotlinMavenPlugin() = groupId.stringValue == KotlinMavenConfigurator.GROUP_ID

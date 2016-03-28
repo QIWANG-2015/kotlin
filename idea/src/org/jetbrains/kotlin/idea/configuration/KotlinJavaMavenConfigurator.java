@@ -45,6 +45,12 @@ public class KotlinJavaMavenConfigurator extends KotlinMavenConfigurator {
 
     @NotNull
     @Override
+    protected String getGoal(boolean isTest) {
+        return isTest ? PomFile.KotlinGoals.INSTANCE.getTestCompile() : PomFile.KotlinGoals.INSTANCE.getCompile();
+    }
+
+    @NotNull
+    @Override
     public TargetPlatform getTargetPlatform() {
         return JvmPlatform.INSTANCE;
     }

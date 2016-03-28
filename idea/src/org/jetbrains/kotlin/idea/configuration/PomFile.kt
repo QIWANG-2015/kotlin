@@ -16,6 +16,10 @@
 
 package org.jetbrains.kotlin.idea.configuration
 
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.SourceFolder
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiWhiteSpace
@@ -29,6 +33,7 @@ import org.jetbrains.idea.maven.dom.MavenDomUtil
 import org.jetbrains.idea.maven.dom.model.*
 import org.jetbrains.idea.maven.model.MavenId
 import org.jetbrains.idea.maven.utils.MavenArtifactScope
+import org.jetbrains.jps.model.java.JavaSourceRootType
 import java.util.*
 
 class PomFile(val xmlFile: XmlFile) {
@@ -136,10 +141,22 @@ class PomFile(val xmlFile: XmlFile) {
         return execution
     }
 
+    fun addKotlinExecution(module: Module, plugin: MavenDomPlugin, executionId: String, phase: String, isTest: Boolean, goals: List<String>) {
+        val execution = addExecution(plugin, executionId, phase, goals)
+
+        val sourceDirs = ModuleRootManager.getInstance(module)
+                .contentEntries
+                .flatMap { it.sourceFolders.filter { it.isRelatedSourceRoot(isTest) } }
+                .mapNotNull { it.file }
+                .mapNotNull { VfsUtilCore.getRelativePath(it, xmlFile.virtualFile.parent, '/') }
+
+        executionSourceDirs(execution, sourceDirs)
+    }
+
     fun executionSourceDirs(execution: MavenDomPluginExecution, sourceDirs: List<String>) {
         ensureBuild()
 
-        val isTest = execution.goals.goals.any { it.stringValue?.let { "test" in it } ?: false }
+        val isTest = execution.goals.goals.any { it.stringValue == KotlinGoals.TestCompile || it.stringValue == KotlinGoals.TestJs}
         val defaultDir = if (isTest) "test" else "main"
         val singleDirectoryElement = if (isTest) {
             domModel.build.testSourceDirectory
@@ -298,6 +315,15 @@ class PomFile(val xmlFile: XmlFile) {
 
     private fun GenericDomValue<String>.isEmpty() = !exists() || stringValue.isNullOrEmpty()
 
+    private fun SourceFolder.isRelatedSourceRoot(isTest: Boolean): Boolean {
+        val relevantRootType = when {
+            isTest -> JavaSourceRootType.TEST_SOURCE
+            else -> JavaSourceRootType.SOURCE
+        }
+
+        return rootType === relevantRootType
+    }
+
     @Suppress("Unused")
     object DefaultPhases {
         val Validate = "validate"
@@ -333,6 +359,17 @@ class PomFile(val xmlFile: XmlFile) {
     }
 
     companion object {
+        fun getPhase(hasJavaFiles: Boolean, isTest: Boolean) = when {
+            hasJavaFiles -> when {
+                isTest -> DefaultPhases.ProcessTestSources
+                else -> DefaultPhases.ProcessSources
+            }
+            else -> when {
+                isTest -> DefaultPhases.TestCompile
+                else -> DefaultPhases.Compile
+            }
+        }
+
         // from maven code convention: https://maven.apache.org/developers/conventions/code.html
         val recommendedElementsOrder = """
           <modelVersion/>
