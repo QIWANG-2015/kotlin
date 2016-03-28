@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2015 JetBrains s.r.o.
+ * Copyright 2010-2016 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import com.intellij.psi.impl.light.AbstractLightClass;
 import com.intellij.psi.impl.source.ClassInnerStuffCache;
 import com.intellij.psi.impl.source.PsiExtensibleClass;
 import com.intellij.psi.scope.PsiScopeProcessor;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import kotlin.collections.ArraysKt;
@@ -34,9 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.KotlinLanguage;
 import org.jetbrains.kotlin.psi.KtClassOrObject;
-import org.jetbrains.kotlin.psi.KtDeclaration;
-import org.jetbrains.kotlin.psi.KtProperty;
-import org.jetbrains.kotlin.psi.KtPropertyAccessor;
 
 import java.util.List;
 
@@ -123,7 +119,7 @@ public abstract class KtWrappingLightClass extends AbstractLightClass implements
             @Override
             public PsiField fun(PsiField field) {
                 LightMemberOrigin origin = ClsWrapperStubPsiFactory.getMemberOrigin(field);
-                return KtLightFieldImpl.Factory.create(origin != null ? origin.getOriginalElement() : null, field, KtWrappingLightClass.this);
+                return KtLightFieldImpl.Factory.create(origin, field, KtWrappingLightClass.this);
             }
         });
     }
@@ -135,11 +131,12 @@ public abstract class KtWrappingLightClass extends AbstractLightClass implements
             @Override
             public PsiMethod invoke(PsiMethod method) {
                 LightMemberOrigin origin = ClsWrapperStubPsiFactory.getMemberOrigin(method);
-                KtDeclaration originalElement = origin != null ? origin.getOriginalElement() : null;
-                if (originalElement instanceof KtPropertyAccessor) {
-                    //noinspection ConstantConditions
-                    origin = origin.copy(PsiTreeUtil.getParentOfType(originalElement, KtProperty.class), origin.getOriginKind());
-                }
+                //TODO_R: wtf is this code?
+                //KtDeclaration originalElement = origin != null ? origin.getOriginalElement() : null;
+                //if (originalElement instanceof KtPropertyAccessor) {
+                //    //noinspection ConstantConditions
+                //    origin = origin.copy(PsiTreeUtil.getParentOfType(originalElement, KtProperty.class), origin.getOriginKind());
+                //}
 
                 return KtLightMethodImpl.Factory.create(method, origin, KtWrappingLightClass.this);
             }

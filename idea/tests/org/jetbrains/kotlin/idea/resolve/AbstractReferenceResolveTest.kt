@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.idea.resolve
 
 import com.google.common.collect.Lists
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiReference
 import com.intellij.testFramework.LightProjectDescriptor
@@ -58,8 +59,12 @@ abstract class AbstractReferenceResolveTest : KotlinLightPlatformCodeInsightFixt
         forEachCaret { index, offset ->
             val expectedResolveData = readResolveData(myFixture.file.text, index, refMarkerText)
             val psiReference = myFixture.file.findReferenceAt(offset)
-            checkReferenceResolve(expectedResolveData, offset, psiReference)
+            checkReferenceResolve(expectedResolveData, offset, psiReference) { checkResolvedTo(it) }
         }
+    }
+
+    open fun checkResolvedTo(element: PsiElement) {
+        // do nothing
     }
 
     protected fun doMultiResolveTest() {
@@ -121,29 +126,35 @@ abstract class AbstractReferenceResolveTest : KotlinLightPlatformCodeInsightFixt
         // see ReferenceResolveInJavaTestGenerated.testPackageFacade()
         private fun getExpectedReferences(text: String, index: Int, refMarkerText: String): List<String> {
             val prefix = if (index > 0) "// $refMarkerText$index:" else "// $refMarkerText:"
-            val prefixes = InTextDirectivesUtils.findLinesWithPrefixesRemoved(text, prefix)
-            return prefixes.map {
-                val replaced = it.replace("<test dir>", PluginTestCaseBase.getTestDataPathBase())
-                PathUtil.toSystemDependentName(replaced).replace("//", "/") //happens on Unix
-            }
+            return InTextDirectivesUtils.findLinesWithPrefixesRemoved(text, prefix)
         }
 
-        fun checkReferenceResolve(expectedResolveData: ExpectedResolveData, offset: Int, psiReference: PsiReference?) {
+        fun checkReferenceResolve(expectedResolveData: ExpectedResolveData, offset: Int, psiReference: PsiReference?, checkResolvedTo: (PsiElement) -> Unit = {}) {
+            val expectedString = expectedResolveData.referenceString
             if (psiReference != null) {
                 val resolvedTo = psiReference.resolve()
                 if (resolvedTo != null) {
-                    val resolvedToElementStr = ReferenceUtils.renderAsGotoImplementation(resolvedTo)
-                    assertEquals("Found reference to '$resolvedToElementStr', but '${expectedResolveData.referenceString}' was expected", expectedResolveData.referenceString, resolvedToElementStr)
+                    checkResolvedTo(resolvedTo)
+                    val resolvedToElementStr = replacePlaceholders(ReferenceUtils.renderAsGotoImplementation(resolvedTo))
+                    assertEquals("Found reference to '$resolvedToElementStr', but '$expectedString' was expected", expectedString, resolvedToElementStr)
                 }
                 else {
                     if (!expectedResolveData.shouldBeUnresolved()) {
-                        assertNull("Element $psiReference wasn't resolved to anything, but ${expectedResolveData.referenceString} was expected", expectedResolveData.referenceString)
+                        assertNull("Element $psiReference wasn't resolved to anything, but $expectedString was expected", expectedString)
                     }
                 }
             }
             else {
-                assertNull("No reference found at offset: $offset, but one resolved to ${expectedResolveData.referenceString} was expected", expectedResolveData.referenceString)
+                assertNull("No reference found at offset: $offset, but one resolved to $expectedString was expected", expectedString)
             }
+        }
+
+        private fun replacePlaceholders(actualString: String): String {
+            val replaced = PathUtil.toSystemIndependentName(actualString).replace(PluginTestCaseBase.getTestDataPathBase(), "<test dir>")
+            if ("!/" in replaced) {
+                return replaced.replace(replaced.substringBefore("!/"), "<jar>")
+            }
+            return replaced
         }
     }
 }
