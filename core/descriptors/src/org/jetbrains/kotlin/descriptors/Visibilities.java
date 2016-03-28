@@ -164,6 +164,8 @@ public class Visibilities {
         ) {
             // Do not check receiver for non-callable declarations
             if (!(whatDeclaration instanceof CallableMemberDescriptor)) return true;
+            // Constructor accessibility check is performed manually
+            if (whatDeclaration instanceof ConstructorDescriptor) return true;
 
             // See Visibility.isVisible contract
             if (receiver == null) return true;
