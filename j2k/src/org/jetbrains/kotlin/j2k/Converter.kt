@@ -711,24 +711,24 @@ class Converter private constructor(
     private fun Modifiers.adaptProtectedVisibility(member: PsiMember): Modifiers {
         if (!member.hasModifierProperty(PsiModifier.PROTECTED)) return this
 
+        fun replaceProtectedWithPublic() = without(Modifier.PROTECTED).with(Modifier.PUBLIC)
+
         val originalClass = member.containingClass ?: return this
         // Search for usages only in Java because java-protected member cannot be used in Kotlin from same package
         val usages = referenceSearcher.findUsagesForExternalCodeProcessing(member, true, false)
         for (usage in usages) {
             val element = usage.element
 
-            var allowProtected = false
+            if (element is PsiConstructorCall && member is PsiMethod && member.isConstructor) {
+                return replaceProtectedWithPublic()
+            }
+
             var parent: PsiElement? = element
             while (parent != null) {
                 if (parent is PsiClass && allowProtected(parent, originalClass)) {
-                    allowProtected = true
-                    break
+                    return replaceProtectedWithPublic()
                 }
                 parent = parent.parent
-            }
-
-            if (!allowProtected) {
-                return without(Modifier.PROTECTED).with(Modifier.PUBLIC)
             }
         }
         return this
